@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/test-roles")
-public class EnpointsTestRoles {
+public class EndpointsTestRoles {
 
     @GetMapping("/test-administrator")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
@@ -23,7 +23,7 @@ public class EnpointsTestRoles {
 
     @GetMapping("/test-student")
     @PreAuthorize("hasAnyRole('STUDENT')")
-    public String testStudend() {
+    public String testStudent() {
         return "test-student";
     }
 
