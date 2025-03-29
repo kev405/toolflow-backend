@@ -82,7 +82,7 @@ pipeline {
                 // Se utiliza withCredentials para inyectar la contraseña SSH y sshpass para la conexión
                 withCredentials([string(credentialsId: 'ssh-password-id', variable: 'SSH_PASSWORD')]) {
                     sh '''
-                    sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} << EOF
+                    sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<EOF
                     # Extraer la última imagen
                     docker pull ${DOCKER_IMAGE}:latest
 
@@ -94,7 +94,7 @@ pipeline {
                     docker rm ${APP_NAME} || true
 
                     # Iniciar un nuevo contenedor con la imagen actualizada
-                    docker run -d --name ${APP_NAME} -p 8080:8080 ${DOCKER_IMAGE}:latest
+                    docker run -d --name ${APP_NAME} -p 9009:9009 ${DOCKER_IMAGE}:latest
                     EOF
                     '''
                 }
