@@ -82,21 +82,21 @@ pipeline {
                 // Se utiliza withCredentials para inyectar la contraseña SSH y sshpass para la conexión
                 withCredentials([string(credentialsId: 'ssh-password-id', variable: 'SSH_PASSWORD')]) {
                     sh '''
-                    sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<EOF
-                    # Extraer la última imagen
-                    docker pull ${DOCKER_IMAGE}:latest
+sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} <<EOF
+# Extraer la última imagen
+docker pull ${DOCKER_IMAGE}:latest
 
-                    # Eliminar imágenes anteriores (con tags diferentes a latest)
-                    docker images ${DOCKER_IMAGE} --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v ":latest" | awk '{print $2}' | xargs -r docker rmi -f
+# Eliminar imágenes anteriores (con tags diferentes a latest)
+docker images ${DOCKER_IMAGE} --format "{{.Repository}}:{{.Tag}} {{.ID}}" | grep -v ":latest" | awk '{print $2}' | xargs -r docker rmi -f
 
-                    # Detener y eliminar contenedores en ejecución (si existen)
-                    docker stop ${APP_NAME} || true
-                    docker rm ${APP_NAME} || true
+# Detener y eliminar contenedores en ejecución (si existen)
+docker stop ${APP_NAME} || true
+docker rm ${APP_NAME} || true
 
-                    # Iniciar un nuevo contenedor con la imagen actualizada
-                    docker run -d --name ${APP_NAME} -p 9009:9009 ${DOCKER_IMAGE}:latest
-                    EOF
-                    '''
+# Iniciar un nuevo contenedor con la imagen actualizada
+docker run -d --name ${APP_NAME} -p 9009:9009 ${DOCKER_IMAGE}:latest
+EOF
+'''
                 }
             }
         }
