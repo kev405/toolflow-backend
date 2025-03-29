@@ -50,7 +50,7 @@ pipeline {
                     echo "Construyendo la imagen Docker para la API Spring Boot"
                 }
                 // Construye la imagen Docker y la etiqueta como 'latest'
-                sh 'sudo docker build -t ${DOCKER_IMAGE}:latest .'
+                sh 'docker build -t ${DOCKER_IMAGE}:latest .'
             }
         }
 
@@ -60,7 +60,7 @@ pipeline {
                     echo "Iniciando sesión en DockerHub"
                 }
                 // Autenticación en DockerHub utilizando las credenciales almacenadas en Jenkins
-                sh 'sudo echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
         }
 
@@ -70,7 +70,7 @@ pipeline {
                     echo "Subiendo la imagen Docker a DockerHub"
                 }
                 // Envía la imagen Docker a DockerHub
-                sh 'sudo docker push ${DOCKER_IMAGE}:latest'
+                sh 'docker push ${DOCKER_IMAGE}:latest'
             }
         }
 
