@@ -11,7 +11,7 @@ spring:
     username: postgres
     password: "secret"
     hikari:
-      maxLifetime: 1800000
+      maxLifetime: 7200
       maximum-pool-size: 10
       minimum-idle: 1
       idle-timeout: 600000
