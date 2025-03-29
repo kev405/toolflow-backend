@@ -3,36 +3,32 @@
 CREATE TABLE if not exists toolflow_user (
     id BIGINT NOT NULL,
     username VARCHAR(255) NOT NULL,
-    name VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    phone BIGINT,
+    email VARCHAR(255) NOT NULL,
+    status boolean NOT NULL,
     password VARCHAR(255) NOT NULL,
-    role VARCHAR(50),
+    created_at TIMESTAMP NOT NULL,
+    created_by BIGINT NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    updated_by BIGINT NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (username)
 );
 
 CREATE SEQUENCE if not exists toolflow_user_id_seq START WITH 1 INCREMENT BY 1;
 
--- -------------------------------------- category -----------------------------------------------
+-- -------------------------------------- user_role -----------------------------------------------
 
-CREATE TABLE if not exists category (
+CREATE TABLE if not exists user_role (
     id BIGINT NOT NULL,
-    name VARCHAR(255) DEFAULT NULL,
-    status VARCHAR(50) DEFAULT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE SEQUENCE if not exists category_id_seq START WITH 1 INCREMENT BY 1;
-
--- -------------------------------------- product -----------------------------------------------
-
-CREATE TABLE if not exists product (
-    id BIGINT NOT NULL,
-    name VARCHAR(255) DEFAULT NULL,
-    price DECIMAL(10,2) DEFAULT NULL,
-    status VARCHAR(50) DEFAULT NULL,
-    category_id BIGINT DEFAULT NULL,
+    user_id BIGINT NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    created_by BIGINT NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES category(id)
+    FOREIGN KEY (user_id) REFERENCES toolflow_user(id)
 );
 
-CREATE SEQUENCE if not exists product_id_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE if not exists user_role_id_seq START WITH 1 INCREMENT BY 1;

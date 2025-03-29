@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.config.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,14 +11,18 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.persistence.repository.UserRepository;
+import com.codeflow.toolflow.persistence.repository.UserRoleRepository;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityBeansInjector {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    private final UserRoleRepository userRoleRepository;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -41,7 +46,17 @@ public class SecurityBeansInjector {
     @Bean
     public UserDetailsService userDetailsService(){
         return (username) -> {
-            return userRepository.findByUsername(username)
+            return userRepository.findByUsername(username).map(user -> {
+                        UserLogin userLogin = UserLogin.builder()
+                                .id(user.getId())
+                                .name(user.getName())
+                                .username(user.getUsername())
+                                .password(user.getPassword())
+                                .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
+                                .build();
+
+                        return userLogin;
+                    })
                     .orElseThrow(() -> new ObjectNotFoundException("User not found with username " + username));
         };
     }

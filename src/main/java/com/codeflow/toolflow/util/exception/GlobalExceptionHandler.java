@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.codeflow.toolflow.dto.ApiError;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j2;
 
 @RestControllerAdvice
+@Log4j2
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
@@ -37,7 +39,7 @@ public class GlobalExceptionHandler {
         apiError.setTimestamp(LocalDateTime.now());
         apiError.setMessage("Error en la petición enviada");
 
-        System.out.println(
+        log.info(
                 exception.getAllErrors().stream().map(each -> each.getDefaultMessage())
                         .collect(Collectors.toList())
         );

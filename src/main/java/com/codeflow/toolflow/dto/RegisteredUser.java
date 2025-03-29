@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import java.io.Serializable;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -20,6 +21,6 @@ public class RegisteredUser implements Serializable {
     private Long id;
     private String username;
     private String name;
-    private String role;
+    private List<String> role;
     private String jwt;
 }

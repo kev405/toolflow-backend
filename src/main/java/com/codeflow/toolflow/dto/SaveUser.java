@@ -1,6 +1,8 @@
 package com.codeflow.toolflow.dto;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,10 +22,35 @@ public class SaveUser implements Serializable {
 
     @Size(min = 4)
     private String name;
+
     private String username;
+
     @Size(min = 8)
     private String password;
+
+    @NotNull
+    private String lastName;
+
+    private Integer phone;
+
+    @NotNull
+    private String email;
+
+    @NotNull
+    private String status;
+
     @Size(min = 8)
     private String repeatedPassword;
+
+    private LocalDateTime createdAt;
+
+    @NotNull
+    private Long createdBy;
+
+    @NotNull
+    private LocalDateTime updatedAt;
+
+    @NotNull
+    private Long updatedBy;
 
 }

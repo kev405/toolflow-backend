@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.service.auth;
 
+import lombok.extern.log4j.Log4j2;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
+@Log4j2
 public class JwtService {
 
     @Value("${security.jwt.expiration-in-minutes}")
@@ -40,7 +42,6 @@ public class JwtService {
 
     private Key generateKey() {
         byte[] passwordDecoded = Decoders.BASE64.decode(SECRET_KEY);
-        System.out.println( new String(passwordDecoded) );
         return Keys.hmacShaKeyFor(passwordDecoded);
     }
 

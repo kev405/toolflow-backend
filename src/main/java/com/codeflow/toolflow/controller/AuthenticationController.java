@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.codeflow.toolflow.dto.auth.AuthenticationRequest;
 import com.codeflow.toolflow.dto.auth.AuthenticationResponse;
-import com.codeflow.toolflow.persistence.entity.User;
+import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.service.auth.AuthenticationService;
 import jakarta.validation.Valid;
 
@@ -32,8 +32,8 @@ public class AuthenticationController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<User> findMyProfile(){
-        User user = authenticationService.findLoggedInUser();
+    public ResponseEntity<UserLogin> findMyProfile(){
+        UserLogin user = authenticationService.findLoggedInUser();
         return ResponseEntity.ok(user);
     }
 

@@ -1,12 +1,14 @@
 package com.codeflow.toolflow.dto;
 
-import java.io.Serializable;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import java.time.LocalDateTime;
+import com.codeflow.toolflow.util.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -16,8 +18,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @NoArgsConstructor
 @JsonInclude(NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SaveCategory implements Serializable {
+public class RUserRole {
 
-    @NotBlank
-    private String name;
+    private Long id;
+
+    private Long toolflowUserId;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    private LocalDateTime createdAt;
+
+    private Long createdBy;
 }

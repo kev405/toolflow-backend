@@ -1,18 +1,16 @@
 package com.codeflow.toolflow.persistence.entity;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import jakarta.persistence.*;
-import lombok.*;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static jakarta.persistence.GenerationType.SEQUENCE;
-import com.codeflow.toolflow.util.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+
 
 @Entity
 @Table(name = "toolflow_user")
@@ -22,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @NoArgsConstructor
 @JsonInclude(NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class User implements UserDetails {
+public class User {
 
     public static final String ID_SEQ = "toolflow_user_id_seq";
 
@@ -34,58 +32,34 @@ public class User implements UserDetails {
 
     @Column(unique = true)
     private String username;
+
+    @NotNull
     private String name;
+
+    @NotNull
+    private String lastName;
+
+    private Integer phone;
+
+    @NotNull
+    private String email;
+
+    @NotNull
+    private boolean status;
+
+    @NotNull
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    @NotNull
+    private LocalDateTime createdAt;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        if(role == null) return null;
+    @NotNull
+    private Long createdBy;
 
-        if(role.getPermissions() == null) return null;
+    @NotNull
+    private LocalDateTime updatedAt;
 
-        List<SimpleGrantedAuthority> authorities = role.getPermissions().stream()
-                .map(each -> each.name())
-                .map(each -> new SimpleGrantedAuthority(each))
-//                .map(each -> {
-//                    String permission = each.name();
-//                    return new SimpleGrantedAuthority(permission);
-//                })
-                .collect(Collectors.toList());
+    @NotNull
+    private Long updatedBy;
 
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + this.role.name()));
-        return authorities;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }

@@ -13,12 +13,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.codeflow.toolflow.persistence.entity.User;
+import lombok.extern.log4j.Log4j2;
+import com.codeflow.toolflow.dto.auth.UserLogin;
+import com.codeflow.toolflow.persistence.repository.UserRoleRepository;
 import com.codeflow.toolflow.service.UserService;
 import com.codeflow.toolflow.service.auth.JwtService;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 
 @Component
+@Log4j2
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
@@ -27,10 +30,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRoleRepository userRoleRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        System.out.println("ENTRO EN EL FILTRO JWT AUTHENTICATION FILTER");
+        log.info("ENTRO EN EL FILTRO JWT AUTHENTICATION FILTER");
 
         //1. Obtener encabezado http llamado Authorization
         String authorizationHeader = request.getHeader("Authorization");//Bearer jwt
@@ -48,15 +54,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         //4. Setear objeto authentication dentro de security context holder
 
-        User user = userService.findOneByUsername(username)
+        UserLogin userLogin = userService.findOneByUsername(username).map(user -> {
+                    return UserLogin.builder()
+                            .id(user.getId())
+                            .name(user.getName())
+                            .username(user.getUsername())
+                            .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
+                            .build();
+                })
                 .orElseThrow(() -> new ObjectNotFoundException("User not found. Username: " + username));
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            username, null, user.getAuthorities()
+            username, null, userLogin.getAuthorities()
         );
         authToken.setDetails(new WebAuthenticationDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);
-        System.out.println("Se acaba de setear el authentication");
+        log.info("Se acaba de setear el authentication");
 
         //5. Ejecutar el registro de filtros
         filterChain.doFilter(request, response);
