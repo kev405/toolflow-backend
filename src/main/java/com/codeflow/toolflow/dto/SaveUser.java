@@ -36,7 +36,6 @@ public class SaveUser implements Serializable {
     @NotNull
     private String email;
 
-    @NotNull
     private boolean status;
 
     @Size(min = 8)
