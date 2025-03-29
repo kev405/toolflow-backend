@@ -6,7 +6,8 @@ spring:
       enabled: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/toolflow
+    url: jdbc:postgresql://62.171.188.201:5432/toolflow
+    # url: jdbc:postgresql://localhost:5432/toolflow
     username: postgres
     password: "secret"
     hikari:
