@@ -24,7 +24,7 @@ WORKDIR /app
 COPY --from=build /app/target/toolflow-api.jar .
 
 # Exponer el puerto en el que se ejecutará la API (por defecto Spring Boot usa el 8080)
-EXPOSE 8080
+EXPOSE 9009
 
 # Comando para ejecutar la aplicación
 CMD ["java", "-jar", "toolflow-api.jar"]
