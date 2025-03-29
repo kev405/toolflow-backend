@@ -21,19 +21,26 @@ pipeline {
         stage('Construir API') {
             steps {
                 script {
+                    echo "Asignando permisos de ejecución al archivo mvnw"
+                }
+                sh 'chmod +x mvnw'
+                script {
                     echo "Construyendo la API Spring Boot con Maven"
                 }
-                sh 'sudo ./mvnw clean install package'
+                sh './mvnw clean install package'
             }
         }
 
         stage('Ejecutar Pruebas') {
             steps {
                 script {
-                    echo "Ejecutando pruebas unitarias y de integración"
+                    echo "Asignando permisos de ejecución al archivo mvnw"
                 }
-                // Ejecuta las pruebas con Maven
-                sh 'sudo ./mvnw test'
+                sh 'chmod +x mvnw'
+                script {
+                    echo "Construyendo la API Spring Boot con Maven"
+                }
+                sh './mvnw test'
             }
         }
 
