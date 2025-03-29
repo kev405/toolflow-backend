@@ -1,5 +1,5 @@
 # Etapa 1: Compilar la aplicación usando Maven con Java 17
-FROM maven:3.8.6-openjdk-17 AS build
+FROM maven:3.8.6-openjdk-17-slim AS build
 
 # Establecer el directorio de trabajo
 WORKDIR /app
