@@ -37,7 +37,7 @@ public class SaveUser implements Serializable {
     private String email;
 
     @NotNull
-    private String status;
+    private boolean status;
 
     @Size(min = 8)
     private String repeatedPassword;
