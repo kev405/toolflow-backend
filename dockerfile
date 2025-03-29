@@ -1,5 +1,5 @@
 # Etapa 1: Compilar la aplicación usando Maven con Java 17
-FROM maven:3.8.6-openjdk-17-slim AS build
+FROM maven:3.8.6-openjdk-18-slim AS build
 
 # Establecer el directorio de trabajo
 WORKDIR /app
@@ -15,7 +15,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa 2: Crear la imagen final usando OpenJDK 17
-FROM openjdk:17-slim
+FROM openjdk:18-slim
 
 # Establecer el directorio de trabajo
 WORKDIR /app
