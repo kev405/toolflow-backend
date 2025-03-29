@@ -23,7 +23,7 @@ pipeline {
                 script {
                     echo "Construyendo la API Spring Boot con Maven"
                 }
-                sh './mvnw clean install package'
+                sh 'sudo ./mvnw clean install package'
             }
         }
 
@@ -33,7 +33,7 @@ pipeline {
                     echo "Ejecutando pruebas unitarias y de integración"
                 }
                 // Ejecuta las pruebas con Maven
-                sh './mvnw test'
+                sh 'sudo ./mvnw test'
             }
         }
 
@@ -43,7 +43,7 @@ pipeline {
                     echo "Construyendo la imagen Docker para la API Spring Boot"
                 }
                 // Construye la imagen Docker y la etiqueta como 'latest'
-                sh 'docker build -t ${DOCKER_IMAGE}:latest .'
+                sh 'sudo docker build -t ${DOCKER_IMAGE}:latest .'
             }
         }
 
@@ -53,7 +53,7 @@ pipeline {
                     echo "Iniciando sesión en DockerHub"
                 }
                 // Autenticación en DockerHub utilizando las credenciales almacenadas en Jenkins
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh 'sudo echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
         }
 
@@ -63,7 +63,7 @@ pipeline {
                     echo "Subiendo la imagen Docker a DockerHub"
                 }
                 // Envía la imagen Docker a DockerHub
-                sh 'docker push ${DOCKER_IMAGE}:latest'
+                sh 'sudo docker push ${DOCKER_IMAGE}:latest'
             }
         }
 
