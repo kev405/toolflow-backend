@@ -1,8 +1,8 @@
-package com.codeflow.toolflow.service;
+package com.codeflow.toolflow.service.user;
 
 import java.util.List;
 import com.codeflow.toolflow.dto.RUserRole;
-import com.codeflow.toolflow.persistence.entity.UserRole;
+import com.codeflow.toolflow.persistence.user.entity.UserRole;
 import com.codeflow.toolflow.util.enums.Role;
 
 public interface UserRoleService {

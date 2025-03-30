@@ -1,4 +1,4 @@
-package com.codeflow.toolflow.controller;
+package com.codeflow.toolflow.controller.auth;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

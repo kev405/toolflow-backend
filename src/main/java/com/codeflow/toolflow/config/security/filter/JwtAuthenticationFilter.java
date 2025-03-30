@@ -15,8 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
 import com.codeflow.toolflow.dto.auth.UserLogin;
-import com.codeflow.toolflow.persistence.repository.UserRoleRepository;
-import com.codeflow.toolflow.service.UserService;
+import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
+import com.codeflow.toolflow.service.user.UserService;
 import com.codeflow.toolflow.service.auth.JwtService;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 

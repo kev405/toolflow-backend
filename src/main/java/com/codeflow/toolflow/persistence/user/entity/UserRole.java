@@ -1,4 +1,4 @@
-package com.codeflow.toolflow.persistence.entity;
+package com.codeflow.toolflow.persistence.user.entity;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static jakarta.persistence.GenerationType.SEQUENCE;

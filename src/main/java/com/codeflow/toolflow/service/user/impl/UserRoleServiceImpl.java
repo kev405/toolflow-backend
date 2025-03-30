@@ -1,7 +1,8 @@
-package com.codeflow.toolflow.service.impl;
+package com.codeflow.toolflow.service.user.impl;
 
+import com.codeflow.toolflow.service.user.UserRoleService;
 import lombok.RequiredArgsConstructor;
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,10 +10,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import com.codeflow.toolflow.dto.RUserRole;
 import com.codeflow.toolflow.mapper.UserRoleMapper;
-import com.codeflow.toolflow.persistence.entity.UserRole;
-import com.codeflow.toolflow.persistence.repository.UserRepository;
-import com.codeflow.toolflow.persistence.repository.UserRoleRepository;
-import com.codeflow.toolflow.service.UserRoleService;
+import com.codeflow.toolflow.persistence.user.entity.UserRole;
+import com.codeflow.toolflow.persistence.user.repository.UserRepository;
+import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
 import com.codeflow.toolflow.util.enums.Role;
 
 @Service
