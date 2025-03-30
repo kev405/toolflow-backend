@@ -6,7 +6,7 @@ spring:
       enabled: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://62.171.188.201:5432/toolflow
+    url: jdbc:postgresql://185.194.216.41:5432/toolflow
     # url: jdbc:postgresql://localhost:5432/toolflow
     username: postgres
     password: "secret"
@@ -25,6 +25,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    generate-ddl: false
+    properties:
+      hibernate:
+        show_sql: false
+        format_sql: false
+        jdbc.lob.non_contextual_creation: true
+        generate_statistics: false
+    open-in-view: false
 
 server:
   port: 9009
