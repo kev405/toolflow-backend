@@ -37,6 +37,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public RegisteredUser registerOneCustomer(SaveUser newUser) {
+        log.info("Registering new user: {}", newUser);
         User user = userService.registrOneCustomer(newUser);
 
         List<String> roles = userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).collect(toList());
@@ -58,6 +59,7 @@ public class AuthenticationService {
                 userLogin, generateExtraClaims(userLogin));
         userDto.setJwt(jwt);
 
+        log.info("User registered: {}", userDto);
         return userDto;
     }
 
