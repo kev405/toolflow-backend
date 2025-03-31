@@ -37,4 +37,11 @@ public interface UserService {
      * if no user is found with the given username.
      */
     Optional<User> findOneByUsername(String username);
+
+    /**
+     * Deletes a user from the system based on the provided user ID.
+     *
+     * @param id the unique identifier of the user to be deleted.
+     */
+    void deleteOneUser(Long id);
 }

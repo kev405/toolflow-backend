@@ -83,4 +83,28 @@ public class UserController {
         UserResponse user = userService.updateOneUser(id, userRequest);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }
+
+    @Operation(
+            summary = "Delete User",
+            description = "Deletes an existing user from the system using the provided user ID.",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.PATH,
+                            name = "id",
+                            description = "ID of the user to be deleted",
+                            required = true
+                    )
+            },
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid ID supplied", content = @Content(schema = @Schema(implementation = ApiError.class))),
+                    @ApiResponse(responseCode = "404", description = "User not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+            }
+    )
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<Void> deleteOne(@PathVariable Long id) {
+        userService.deleteOneUser(id);
+        return ResponseEntity.noContent().build();
+    }
 }

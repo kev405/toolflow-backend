@@ -135,6 +135,19 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Deactivates a user by setting their status to false.
+     * Saves the updated user entity back to the repository.
+     *
+     * @param id the unique identifier of the user to be deactivated
+     */
+    @Override
+    public void deleteOneUser(Long id) {
+        User user = findOneById(id);
+        user.setStatus(false);
+        userRepository.save(user);
+    }
+
+    /**
      * Validates that the password and repeated password provided in the {@code UserRequest}
      * are non-empty and match each other.
      *
