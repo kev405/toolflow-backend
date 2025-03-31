@@ -1,7 +1,6 @@
 package com.codeflow.toolflow.config.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,8 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.codeflow.toolflow.dto.auth.UserLogin;
-import com.codeflow.toolflow.persistence.repository.UserRepository;
-import com.codeflow.toolflow.persistence.repository.UserRoleRepository;
+import com.codeflow.toolflow.persistence.user.repository.UserRepository;
+import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 
 @Configuration

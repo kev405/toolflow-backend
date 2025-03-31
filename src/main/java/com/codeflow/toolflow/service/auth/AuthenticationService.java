@@ -4,23 +4,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import static java.util.stream.Collectors.toList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import com.codeflow.toolflow.dto.RegisteredUser;
-import com.codeflow.toolflow.dto.SaveUser;
 import com.codeflow.toolflow.dto.auth.AuthenticationRequest;
 import com.codeflow.toolflow.dto.auth.AuthenticationResponse;
 import com.codeflow.toolflow.dto.auth.UserLogin;
-import com.codeflow.toolflow.persistence.entity.User;
-import com.codeflow.toolflow.persistence.repository.UserRoleRepository;
-import com.codeflow.toolflow.service.UserService;
+import com.codeflow.toolflow.persistence.user.entity.User;
+import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
+import com.codeflow.toolflow.service.user.UserService;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 
 @Service
@@ -35,33 +31,6 @@ public class AuthenticationService {
     private final JwtService jwtService;
 
     private final AuthenticationManager authenticationManager;
-
-    public RegisteredUser registerOneCustomer(SaveUser newUser) {
-        log.info("Registering new user: {}", newUser);
-        User user = userService.registrOneCustomer(newUser);
-
-        List<String> roles = userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).collect(toList());
-
-        UserLogin userLogin = UserLogin.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .username(user.getUsername())
-                .roles(roles)
-                .build();
-
-        RegisteredUser userDto = new RegisteredUser();
-        userDto.setId(userLogin.getId());
-        userDto.setName(userLogin.getName());
-        userDto.setUsername(userLogin.getUsername());
-        userDto.setRole(userLogin.getRoles());
-
-        String jwt = jwtService.generateToken(
-                userLogin, generateExtraClaims(userLogin));
-        userDto.setJwt(jwt);
-
-        log.info("User registered: {}", userDto);
-        return userDto;
-    }
 
     private Map<String, Object> generateExtraClaims(UserLogin userLogin) {
         Map<String, Object> extraClaims = new HashMap<>();
