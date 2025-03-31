@@ -47,15 +47,6 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
-    public List<Role> getRoleByUser(User user) {
-        List<UserRole> userRoles = userRoleRepository.findByToolflowUser(user);
-        return userRoles.stream()
-                .map(UserRole::getRole)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     public List<Role> getAllRoles() {
         return Arrays.stream(Role.values())
                 .collect(Collectors.toList());

@@ -13,7 +13,5 @@ public interface UserRoleService {
 
     void delete(RUserRole userRole);
 
-    List<Role> getRoleByUser(User user);
-
     List<Role> getAllRoles();
 }

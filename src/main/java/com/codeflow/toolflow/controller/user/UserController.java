@@ -138,14 +138,12 @@ public class UserController {
                     @Parameter(
                             name = "search",
                             in = ParameterIn.QUERY,
-                            description = "Search term to filter the users",
-                            required = false
+                            description = "Search term to filter the users"
                     ),
                     @Parameter(
                             name = "searchColumn",
                             in = ParameterIn.QUERY,
-                            description = "Column on which to perform the search. Allowed values: id, username, name, lastName, email",
-                            required = false
+                            description = "Column on which to perform the search. Allowed values: id, username, name, lastName, email"
                     )
             },
             responses = {
