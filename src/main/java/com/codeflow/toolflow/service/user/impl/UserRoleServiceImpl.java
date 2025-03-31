@@ -2,7 +2,6 @@ package com.codeflow.toolflow.service.user.impl;
 
 import com.codeflow.toolflow.dto.RUserRole;
 import com.codeflow.toolflow.mapper.UserRoleMapper;
-import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.entity.UserRole;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
 import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;

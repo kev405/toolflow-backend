@@ -1,7 +1,6 @@
 package com.codeflow.toolflow.service.user;
 
 import com.codeflow.toolflow.dto.RUserRole;
-import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.entity.UserRole;
 import com.codeflow.toolflow.util.enums.Role;
 
