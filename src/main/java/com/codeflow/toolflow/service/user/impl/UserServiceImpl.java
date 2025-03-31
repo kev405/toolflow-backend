@@ -146,16 +146,26 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Page<UserResponse> getPage(Pageable pageable, String search, String searchColumn) {
-        if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
-            Specification<User> spec = Specification.where(UserSpecifications.userIsActive())
-                    .and(UserSpecifications.searchByColumn(searchColumn, search));
+        Specification<User> spec = UserSpecifications.userIsActive();
 
-            Page<User> users = userRepository.findAll(spec, pageable);
-            return users.map(this::buildUserResponse);
+        if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
+            spec = spec.and(UserSpecifications.searchByColumn(searchColumn, search));
         }
 
-        Page<User> users = userRepository.findByStatusTrue(pageable);
+        Page<User> users = userRepository.findAll(spec, pageable);
         return users.map(this::buildUserResponse);
+    }
+
+    /**
+     * Retrieves a single user by their ID and builds a response object for the user.
+     *
+     * @param id the unique identifier of the user to be retrieved
+     * @return a UserResponse object containing the details of the retrieved user
+     */
+    @Override
+    public UserResponse getOne(Long id) {
+        User user = findOneById(id);
+        return buildUserResponse(user);
     }
 
     /**

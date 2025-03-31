@@ -57,4 +57,12 @@ public interface UserService {
      * @return a {@code Page<UserResponse>} containing the paginated list of users matching the search criteria.
      */
     Page<UserResponse> getPage(Pageable pageable, String search, String searchColumn);
+
+    /**
+     * Retrieves a single user by their unique identifier.
+     *
+     * @param id the unique identifier of the user to be retrieved.
+     * @return a {@code UserResponse} representing the details of the retrieved user.
+     */
+    UserResponse getOne(Long id);
 }

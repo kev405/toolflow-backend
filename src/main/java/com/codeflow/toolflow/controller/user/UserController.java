@@ -174,4 +174,44 @@ public class UserController {
         Page<UserResponse> users = userService.getPage(pageable, search, searchColumn);
         return ResponseEntity.ok(users);
     }
+
+    @Operation(
+            summary = "Get a User by ID",
+            description = "Retrieves a single user by its unique identifier.",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            in = ParameterIn.PATH,
+                            description = "ID of the user to retrieve",
+                            required = true,
+                            example = "1"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid ID supplied",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<UserResponse> getOne(@PathVariable Long id) {
+        UserResponse user = userService.getOne(id);
+        return ResponseEntity.ok(user);
+    }
 }
