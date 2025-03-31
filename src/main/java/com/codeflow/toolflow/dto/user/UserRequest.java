@@ -1,26 +1,21 @@
 package com.codeflow.toolflow.dto.user;
 
-import java.io.Serializable;
-
 import com.codeflow.toolflow.util.enums.Role;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.List;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * Data Transfer Object (DTO) representing a user request for creating or updating a user.
- * <p>
- * This class is used to carry the user data to be validated when creating or updating a user in the system.
- * It contains fields such as name, username, password, email, phone number, and the role of the user.
- * </p>
  */
 @Data
 @Builder
@@ -98,7 +93,7 @@ public class UserRequest implements Serializable {
 
     /**
      * The status of the user. Represents whether the user is active or not.
-     *
+     * <p>
      * The default value is false.
      */
     private boolean status;
@@ -120,10 +115,12 @@ public class UserRequest implements Serializable {
     private Long updatedBy;
 
     /**
-     * The role of the user (e.g., ADMIN, USER).
+     * The roles assigned to the user (e.g., ADMIN, USER, etc.).
      *
-     * @NotNull - This field cannot be null.
+     * @NotNull indicates that the list itself cannot be null.
+     * @NotEmpty ensures that the list contains at least one element.
      */
-    @NotNull(message = "Role is required")
-    private Role role;
+    @NotNull(message = "Roles cannot be null")
+    @NotEmpty(message = "At least one role is required")
+    private List<Role> roles;
 }

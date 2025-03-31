@@ -1,22 +1,20 @@
 package com.codeflow.toolflow.dto.user;
 
-import java.io.Serializable;
-
 import com.codeflow.toolflow.util.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.List;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * Data Transfer Object (DTO) representing the response data for a user.
- * <p>
- * This class is used to return the user information after a user has been created or updated.
- * It contains details such as the user's ID, name, username, last name, email, phone number, and role.
- * </p>
  */
 @Data
 @Builder
@@ -56,8 +54,9 @@ public class UserResponse implements Serializable {
      */
     private String phone;
 
+
     /**
-     * The role of the user (e.g., ADMIN, USER).
+     * The roles assigned to the user.
      */
-    private Role role;
+    private List<Role> roles;
 }
