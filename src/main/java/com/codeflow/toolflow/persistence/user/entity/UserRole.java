@@ -1,14 +1,15 @@
 package com.codeflow.toolflow.persistence.user.entity;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static jakarta.persistence.GenerationType.SEQUENCE;
-import java.time.LocalDateTime;
 import com.codeflow.toolflow.util.enums.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static jakarta.persistence.GenerationType.SEQUENCE;
 
 @Entity
 @Table(name = "user_role")

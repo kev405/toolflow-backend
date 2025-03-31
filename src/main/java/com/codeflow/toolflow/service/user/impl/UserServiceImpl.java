@@ -5,7 +5,7 @@ import com.codeflow.toolflow.dto.user.UserResponse;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.entity.UserRole;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
-import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
+import com.codeflow.toolflow.persistence.user.repository.UserSpecifications;
 import com.codeflow.toolflow.service.user.UserService;
 import com.codeflow.toolflow.util.enums.Role;
 import com.codeflow.toolflow.util.exception.InvalidPasswordException;
@@ -13,6 +13,9 @@ import com.codeflow.toolflow.util.exception.InvalidRoleAssignmentException;
 import com.codeflow.toolflow.util.exception.UserAlreadyExistsException;
 import com.codeflow.toolflow.util.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -28,8 +31,6 @@ import java.util.*;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
-    private final UserRoleRepository userRoleRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -67,22 +68,19 @@ public class UserServiceImpl implements UserService {
         user.setUpdatedBy(userRequest.getUpdatedBy());
         user.setStatus(true);
 
-        User userSaved = userRepository.save(user);
-
-        List<UserRole> userRoles = new ArrayList<>();
         for (Role role : roles) {
             UserRole userRole = UserRole.builder()
                     .role(role)
-                    .toolflowUser(userSaved)
-                    .createdAt(userSaved.getCreatedAt())
-                    .createdBy(userSaved.getCreatedBy())
+                    .toolflowUser(user)
+                    .createdAt(user.getCreatedAt())
+                    .createdBy(user.getCreatedBy())
                     .build();
-            userRoles.add(userRole);
+            user.getUserRoles().add(userRole);
         }
 
-        userRoleRepository.saveAll(userRoles);
+        User userSaved = userRepository.save(user);
 
-        return buildUserResponse(userSaved, roles);
+        return buildUserResponse(userSaved);
     }
 
     /**
@@ -108,30 +106,21 @@ public class UserServiceImpl implements UserService {
         existingUser.setUpdatedAt(LocalDateTime.now());
         existingUser.setUpdatedBy(userRequest.getUpdatedBy());
 
-        User userSaved = userRepository.save(existingUser);
+        existingUser.getUserRoles().clear();
 
-        List<UserRole> existingUserRoles = userRoleRepository.findByToolflowUser(existingUser);
-        List<Role> existingRoles = existingUserRoles.stream().map(UserRole::getRole).toList();
-
-        if (!existingRoles.equals(roles)) {
-            if (!existingUserRoles.isEmpty()) {
-                userRoleRepository.deleteAll(existingUserRoles);
-            }
-
-            List<UserRole> newUserRoles = new ArrayList<>();
-            for (Role role : roles) {
-                UserRole userRole = UserRole.builder()
-                        .role(role)
-                        .toolflowUser(userSaved)
-                        .createdAt(LocalDateTime.now())
-                        .createdBy(userRequest.getUpdatedBy())
-                        .build();
-                newUserRoles.add(userRole);
-            }
-            userRoleRepository.saveAll(newUserRoles);
+        for (Role role : roles) {
+            UserRole userRole = UserRole.builder()
+                    .role(role)
+                    .toolflowUser(existingUser)
+                    .createdAt(LocalDateTime.now())
+                    .createdBy(userRequest.getUpdatedBy())
+                    .build();
+            existingUser.getUserRoles().add(userRole);
         }
 
-        return buildUserResponse(userSaved, userRequest.getRoles());
+        User userSaved = userRepository.save(existingUser);
+
+        return buildUserResponse(userSaved);
     }
 
     /**
@@ -145,6 +134,28 @@ public class UserServiceImpl implements UserService {
         User user = findOneById(id);
         user.setStatus(false);
         userRepository.save(user);
+    }
+
+    /**
+     * Retrieves a paginated list of user responses based on the given pageable and search criteria.
+     *
+     * @param pageable     the pagination and sorting information
+     * @param search       the search keyword used for filtering results
+     * @param searchColumn the column to be searched with the specified keyword
+     * @return a page of UserResponse objects matching the criteria
+     */
+    @Override
+    public Page<UserResponse> getPage(Pageable pageable, String search, String searchColumn) {
+        if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
+            Specification<User> spec = Specification.where(UserSpecifications.userIsActive())
+                    .and(UserSpecifications.searchByColumn(searchColumn, search));
+
+            Page<User> users = userRepository.findAll(spec, pageable);
+            return users.map(this::buildUserResponse);
+        }
+
+        Page<User> users = userRepository.findByStatusTrue(pageable);
+        return users.map(this::buildUserResponse);
     }
 
     /**
@@ -187,11 +198,10 @@ public class UserServiceImpl implements UserService {
      * Constructs a UserResponse object by populating it with details from the provided
      * User object and list of roles.
      *
-     * @param user  the user object containing user details such as ID, username, name, etc.
-     * @param roles the list of roles assigned to the user
+     * @param user the user object containing user details such as ID, username, name, etc.
      * @return a UserResponse object populated with user and role information
      */
-    private UserResponse buildUserResponse(User user, List<Role> roles) {
+    private UserResponse buildUserResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());
         response.setUsername(user.getUsername());
@@ -199,6 +209,12 @@ public class UserServiceImpl implements UserService {
         response.setLastName(user.getLastName());
         response.setEmail(user.getEmail());
         response.setPhone(String.valueOf(user.getPhone()));
+
+        List<Role> roles = new ArrayList<>();
+        for (UserRole userRole : user.getUserRoles()) {
+            roles.add(userRole.getRole());
+        }
+
         response.setRoles(roles);
         return response;
     }

@@ -97,7 +97,7 @@ public class HttpSecurityConfig {
                     /*
                     Autorización de endpoints públicos
                      */
-        authReqConfig.requestMatchers("/swagger-ui/**", "/swagger-ui/**","/v3/api-docs/**").permitAll();
+        authReqConfig.requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll();
 
         authReqConfig.requestMatchers(HttpMethod.POST, "/auth/authenticate").permitAll();
         authReqConfig.requestMatchers(HttpMethod.GET, "/auth/validate-token").permitAll();
