@@ -13,6 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -106,5 +110,106 @@ public class UserController {
     public ResponseEntity<Void> deleteOne(@PathVariable Long id) {
         userService.deleteOneUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Get paginated list of active users",
+            description = "Retrieves a paginated list of active users. You can optionally filter the results by providing a search term and a column to search. " +
+                    "Supported search columns: id, username, name, lastName, email.",
+            parameters = {
+                    @Parameter(
+                            name = "page",
+                            in = ParameterIn.QUERY,
+                            description = "Page number (0-based index)",
+                            example = "0"
+                    ),
+                    @Parameter(
+                            name = "size",
+                            in = ParameterIn.QUERY,
+                            description = "Number of records per page",
+                            example = "10"
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            in = ParameterIn.QUERY,
+                            description = "Sorting criteria in the format: property(,asc|desc). Default is name,asc",
+                            example = "name,asc"
+                    ),
+                    @Parameter(
+                            name = "search",
+                            in = ParameterIn.QUERY,
+                            description = "Search term to filter the users"
+                    ),
+                    @Parameter(
+                            name = "searchColumn",
+                            in = ParameterIn.QUERY,
+                            description = "Column on which to perform the search. Allowed values: id, username, name, lastName, email"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Users retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = Page.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid search parameters supplied",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    @GetMapping()
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<Page<UserResponse>> getPage(
+            @PageableDefault(sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "searchColumn", required = false) String searchColumn) {
+
+        Page<UserResponse> users = userService.getPage(pageable, search, searchColumn);
+        return ResponseEntity.ok(users);
+    }
+
+    @Operation(
+            summary = "Get a User by ID",
+            description = "Retrieves a single user by its unique identifier.",
+            parameters = {
+                    @Parameter(
+                            name = "id",
+                            in = ParameterIn.PATH,
+                            description = "ID of the user to retrieve",
+                            required = true,
+                            example = "1"
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid ID supplied",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<UserResponse> getOne(@PathVariable Long id) {
+        UserResponse user = userService.getOne(id);
+        return ResponseEntity.ok(user);
     }
 }

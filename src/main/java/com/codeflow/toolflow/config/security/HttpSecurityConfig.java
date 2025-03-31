@@ -1,7 +1,6 @@
 package com.codeflow.toolflow.config.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -97,7 +96,7 @@ public class HttpSecurityConfig {
                     /*
                     Autorización de endpoints públicos
                      */
-        authReqConfig.requestMatchers("/swagger-ui/**", "/swagger-ui/**","/v3/api-docs/**").permitAll();
+        authReqConfig.requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll();
 
         authReqConfig.requestMatchers(HttpMethod.POST, "/auth/authenticate").permitAll();
         authReqConfig.requestMatchers(HttpMethod.GET, "/auth/validate-token").permitAll();
