@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Servicio para la aplicación Spring Boot
+  app:
+    build: .
+    container_name: toolflow_app
+    ports:
+      - "9009:9009"  # Exponer el puerto 9009 en el contenedor al puerto 9009 en tu máquina local
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/toolflow  # Conexión al contenedor de PostgreSQL
+      - SPRING_DATASOURCE_USERNAME=postgres  # Usuario de la base de datos
+      - SPRING_DATASOURCE_PASSWORD=secret  # Contraseña de la base de datos
+      - SPRING_JPA_HIBERNATE_DDL-AUTO=none  # Sin auto-generación de esquema
+      - SPRING_FLYWAY_ENABLED=true  # Habilitar Flyway para migraciones
+      - SPRING_FLYWAY_TABLE=flyway_toolflow  # Tabla de Flyway
+    depends_on:
+      - db  # Espera que el servicio db esté disponible antes de iniciar la aplicación
+
+  # Servicio para la base de datos PostgreSQL
+  db:
+    image: postgres:13  # Utilizar la imagen oficial de PostgreSQL
+    container_name: toolflow_db
+    environment:
+      - POSTGRES_DB=toolflow  # Nombre de la base de datos
+      - POSTGRES_USER=postgres  # Usuario de la base de datos
+      - POSTGRES_PASSWORD=secret  # Contraseña del usuario
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistir los datos de la base de datos
+    ports:
+      - "5432:5432"  # Exponer el puerto 5432 para poder conectarse a la base de datos
+
+# Volúmenes para persistir los datos de la base de datos
+volumes:
+  postgres_data:
+    driver: local
