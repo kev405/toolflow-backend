@@ -193,7 +193,7 @@ public class UserServiceImpl implements UserService {
      * @return a processed list of roles.
      * @throws InvalidRoleAssignmentException if the roles do not meet the validation criteria.
      */
-    private List<Role> areValidateRoles(List<Role> roles) {
+    public List<Role> areValidateRoles(List<Role> roles) {
         if (roles == null) {
             throw new InvalidRoleAssignmentException("Roles cannot be null");
         }
