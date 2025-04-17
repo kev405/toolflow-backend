@@ -1,11 +1,13 @@
 package com.codeflow.toolflow.service.user.impl;
 
+import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.dto.user.UserRequest;
 import com.codeflow.toolflow.dto.user.UserResponse;
+import com.codeflow.toolflow.mapper.user.UserMapper;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.entity.UserRole;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
-import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
+import com.codeflow.toolflow.util.enums.Role;
 import com.codeflow.toolflow.util.exception.InvalidPasswordException;
 import com.codeflow.toolflow.util.exception.InvalidRoleAssignmentException;
 import com.codeflow.toolflow.util.exception.UserAlreadyExistsException;
@@ -14,29 +16,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import com.codeflow.toolflow.util.enums.Role;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.data.domain.Pageable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-
-import javax.management.relation.RoleNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,18 +50,26 @@ class UserServiceImplTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private UserRoleRepository roleRepository;
+    private UserMapper userMapper;
 
     @InjectMocks
     private UserServiceImpl userService;
 
     @BeforeEach
     void setUp() {
+        UserLogin userLogin = new UserLogin();
+        userLogin.setId(1L);
+        userLogin.setUsername("mockUser");
+        userLogin.setRoles(List.of(Role.ADMINISTRATOR.name()));
 
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userLogin, null
+        ));
     }
 
     @Test
     void registerOneUser_success() {
+        // Arrange
         UserRequest request = new UserRequest();
         request.setUsername("johndoe");
         request.setPassword("password123");
@@ -69,26 +78,33 @@ class UserServiceImplTest {
         request.setLastName("Doe");
         request.setEmail("john@example.com");
         request.setPhone("1234567890");
-        request.setCreatedBy(1L);
-        request.setUpdatedBy(1L);
         request.setRoles(List.of(Role.ADMINISTRATOR));
 
         when(userRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
         when(passwordEncoder.encode("password123")).thenReturn("encoded123");
 
+        User user = new User();
+        user.setUsername("johndoe");
+        user.setPassword("encoded123");
+        user.setUserRoles(new ArrayList<>());
+        when(userMapper.toEntity(request)).thenReturn(user);
+
         User savedUser = new User();
         savedUser.setId(1L);
         savedUser.setUsername("johndoe");
-        savedUser.setName("John");
-        savedUser.setLastName("Doe");
-        savedUser.setEmail("john@example.com");
-        savedUser.setPhone(1234567890);
         savedUser.setUserRoles(List.of(UserRole.builder().role(Role.ADMINISTRATOR).build()));
-
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
+        UserResponse expectedResponse = new UserResponse();
+        expectedResponse.setId(1L);
+        expectedResponse.setUsername("johndoe");
+        expectedResponse.setRoles(List.of(Role.ADMINISTRATOR));
+        when(userMapper.toResponse(savedUser)).thenReturn(expectedResponse);
+
+        // Act
         var response = userService.registerOneUser(request);
 
+        // Assert
         assertNotNull(response);
         assertEquals("johndoe", response.getUsername());
         assertTrue(response.getRoles().contains(Role.ADMINISTRATOR));
@@ -103,7 +119,6 @@ class UserServiceImplTest {
         request.setRepeatedPassword("Password123!");
         request.setRoles(Collections.singletonList(Role.ADMINISTRATOR));
 
-        // Simulamos que ya existe un usuario con ese username
         when(userRepository.findByUsername("existingUser"))
                 .thenReturn(Optional.of(new User()));
 
@@ -112,7 +127,6 @@ class UserServiceImplTest {
             userService.registerOneUser(request);
         });
 
-        // Verificamos que no se llegó a guardar el usuario
         verify(userRepository, never()).save(any(User.class));
     }
 
@@ -123,11 +137,12 @@ class UserServiceImplTest {
 
         UserRequest request = UserRequest.builder()
                 .username("updatedUser")
+                .password("SecurePass123")
+                .repeatedPassword("SecurePass123")
                 .name("Updated")
                 .lastName("User")
                 .email("updated@example.com")
                 .phone("987654321")
-                .updatedBy(1L)
                 .roles(List.of(Role.ADMINISTRATOR))
                 .build();
 
@@ -142,7 +157,15 @@ class UserServiceImplTest {
         existingUser.setUserRoles(new ArrayList<>());
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(passwordEncoder.encode("SecurePass123")).thenReturn("encoded123");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UserResponse expectedResponse = new UserResponse();
+        expectedResponse.setId(userId);
+        expectedResponse.setUsername("updatedUser");
+        expectedResponse.setEmail("updated@example.com");
+        expectedResponse.setRoles(List.of(Role.ADMINISTRATOR));
+        when(userMapper.toResponse(any(User.class))).thenReturn(expectedResponse);
 
         // Act
         UserResponse response = userService.updateOneUser(userId, request);
@@ -177,9 +200,7 @@ class UserServiceImplTest {
         verify(userRepository).save(userCaptor.capture());
         User savedUser = userCaptor.getValue();
 
-        // Aquí verificamos que el status fue cambiado a false sin necesidad de usar getters
-        assertFalse(savedUser.isStatus()); // Opción 1: si el campo es público
-        // assertFalse(savedUser.isStatus()); // Opción 2: si hay getter booleano
+        assertFalse(savedUser.isStatus());
     }
 
     @Test
@@ -200,9 +221,14 @@ class UserServiceImplTest {
 
         Page<User> userPage = new PageImpl<>(List.of(user), pageable, 1);
 
-        // Usamos matchers directamente, sin asignarlos a variables
         when(userRepository.findAll(any(Specification.class), eq(pageable)))
                 .thenReturn(userPage);
+
+        UserResponse mapped = new UserResponse();
+        mapped.setId(1L);
+        mapped.setUsername("admin");
+        mapped.setName("Admin");
+        when(userMapper.toResponse(user)).thenReturn(mapped);
 
         // Act
         Page<UserResponse> result = userService.getPage(pageable, search, searchColumn);
@@ -231,6 +257,13 @@ class UserServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
+        UserResponse expectedResponse = new UserResponse();
+        expectedResponse.setId(userId);
+        expectedResponse.setUsername("admin");
+        expectedResponse.setName("Admin");
+
+        when(userMapper.toResponse(user)).thenReturn(expectedResponse);
+
         // Act
         UserResponse result = userService.getOne(userId);
 
@@ -239,6 +272,7 @@ class UserServiceImplTest {
         assertEquals("admin", result.getUsername());
         assertEquals("Admin", result.getName());
         verify(userRepository).findById(userId);
+        verify(userMapper).toResponse(user);
     }
 
     @Test
@@ -293,30 +327,54 @@ class UserServiceImplTest {
 
     @Test
     void registerOneUser_validPassword_registersSuccessfully() {
-        // Arrange
         UserRequest request = new UserRequest();
         request.setUsername("validuser");
         request.setPassword("SecurePass123");
-        request.setRepeatedPassword("SecurePass123"); // <- coinciden
+        request.setRepeatedPassword("SecurePass123");
         request.setName("John");
         request.setLastName("Doe");
         request.setEmail("john.doe@example.com");
         request.setPhone("123456789");
-        request.setCreatedBy(1L);
-        request.setUpdatedBy(1L);
         request.setRoles(Collections.singletonList(Role.ADMINISTRATOR));
 
         when(userRepository.findByUsername("validuser")).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-            User user = invocation.getArgument(0);
-            user.setId(1L); // simulamos que el repo lo guarda y le asigna un ID
-            return user;
-        });
+        when(passwordEncoder.encode("SecurePass123")).thenReturn("encoded-password");
 
-        // Act
+        User mappedUser = new User();
+        mappedUser.setUsername("validuser");
+        mappedUser.setPassword("encoded-password");
+        mappedUser.setName("John");
+        mappedUser.setLastName("Doe");
+        mappedUser.setEmail("john.doe@example.com");
+        mappedUser.setPhone(123456789);
+        mappedUser.setUserRoles(new ArrayList<>());
+
+        when(userMapper.toEntity(request)).thenReturn(mappedUser);
+
+        User savedUser = new User();
+        savedUser.setId(1L);
+        savedUser.setUsername("validuser");
+        savedUser.setName("John");
+        savedUser.setLastName("Doe");
+        savedUser.setEmail("john.doe@example.com");
+        savedUser.setPhone(123456789);
+        savedUser.setUserRoles(List.of(UserRole.builder().role(Role.ADMINISTRATOR).build()));
+
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        UserResponse expectedResponse = new UserResponse();
+        expectedResponse.setId(1L);
+        expectedResponse.setUsername("validuser");
+        expectedResponse.setName("John");
+        expectedResponse.setLastName("Doe");
+        expectedResponse.setEmail("john.doe@example.com");
+        expectedResponse.setPhone("123456789");
+        expectedResponse.setRoles(List.of(Role.ADMINISTRATOR));
+
+        when(userMapper.toResponse(savedUser)).thenReturn(expectedResponse);
+
         UserResponse response = userService.registerOneUser(request);
 
-        // Assert
         assertNotNull(response);
         assertEquals("validuser", response.getUsername());
         assertEquals("John", response.getName());
@@ -391,10 +449,22 @@ class UserServiceImplTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
+        UserResponse mockedResponse = new UserResponse();
+        mockedResponse.setId(1L);
+        mockedResponse.setUsername("johndoe");
+        mockedResponse.setName("John");
+        mockedResponse.setLastName("Doe");
+        mockedResponse.setEmail("john.doe@example.com");
+        mockedResponse.setPhone("123456789");
+        mockedResponse.setRoles(List.of(Role.STUDENT));
+
+        when(userMapper.toResponse(user)).thenReturn(mockedResponse);
+
         // Act
         UserResponse response = userService.getOne(1L);
 
         // Assert
+        assertNotNull(response);
         assertEquals(1L, response.getId());
         assertEquals("johndoe", response.getUsername());
         assertEquals("John", response.getName());
@@ -430,7 +500,6 @@ class UserServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
-        // Acceder por reflexión
         Method method = UserServiceImpl.class.getDeclaredMethod("findOneById", Long.class);
         method.setAccessible(true);
 
@@ -448,7 +517,6 @@ class UserServiceImplTest {
         Long userId = 404L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Reflexión otra vez
         Method method = UserServiceImpl.class.getDeclaredMethod("findOneById", Long.class);
         method.setAccessible(true);
 

@@ -99,22 +99,6 @@ public class UserRequest implements Serializable {
     private boolean status;
 
     /**
-     * The ID of the user who created this user.
-     *
-     * @NotNull - This field cannot be null.
-     */
-    @NotNull(message = "Created by ID is required")
-    private Long createdBy;
-
-    /**
-     * The ID of the user who last updated this user.
-     *
-     * @NotNull - This field cannot be null.
-     */
-    @NotNull(message = "Updated by ID is required")
-    private Long updatedBy;
-
-    /**
      * The roles assigned to the user (e.g., ADMIN, USER, etc.).
      *
      * @NotNull indicates that the list itself cannot be null.

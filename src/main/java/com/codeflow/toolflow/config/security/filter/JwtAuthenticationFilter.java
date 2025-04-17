@@ -54,18 +54,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         //4. Setear objeto authentication dentro de security context holder
 
-        UserLogin userLogin = userService.findOneByUsername(username).map(user -> {
-                    return UserLogin.builder()
-                            .id(user.getId())
-                            .name(user.getName())
-                            .username(user.getUsername())
-                            .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
-                            .build();
-                })
+        UserLogin userLogin = userService.findOneByUsername(username).map(user -> UserLogin.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .username(user.getUsername())
+                .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
+                .build())
                 .orElseThrow(() -> new ObjectNotFoundException("User not found. Username: " + username));
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            username, null, userLogin.getAuthorities()
+            userLogin, null, userLogin.getAuthorities()
         );
         authToken.setDetails(new WebAuthenticationDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);
