@@ -144,7 +144,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Page<UserResponse> getPage(Pageable pageable, String search, String searchColumn) {
-        Specification<User> spec = UserSpecifications.userIsActive();
+        Specification<User> spec = Specification.where(null);
 
         if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
             spec = spec.and(UserSpecifications.searchByColumn(searchColumn, search));

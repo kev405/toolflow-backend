@@ -59,4 +59,9 @@ public class UserResponse implements Serializable {
      * The roles assigned to the user.
      */
     private List<Role> roles;
+
+    /**
+     * The status of the user (active/inactive).
+     */
+    private boolean status;
 }

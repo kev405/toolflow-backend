@@ -242,6 +242,39 @@ class UserServiceImplTest {
     }
 
     @Test
+    void getPage_withoutSearchParams_returnsAllUsers() {
+        // Arrange
+        Pageable pageable = PageRequest.of(0, 10);
+        String search = ""; // o null
+        String searchColumn = ""; // o null
+
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("user1");
+
+        Page<User> userPage = new PageImpl<>(List.of(user), pageable, 1);
+
+        when(userRepository.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(userPage);
+
+        UserResponse userResponse = new UserResponse();
+        userResponse.setId(1L);
+        userResponse.setUsername("user1");
+
+        when(userMapper.toResponse(user)).thenReturn(userResponse);
+
+        // Act
+        Page<UserResponse> result = userService.getPage(pageable, search, searchColumn);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("user1", result.getContent().get(0).getUsername());
+
+        verify(userRepository).findAll(any(Specification.class), eq(pageable));
+    }
+
+    @Test
     void getOne_success() {
         // Arrange
         Long userId = 1L;
