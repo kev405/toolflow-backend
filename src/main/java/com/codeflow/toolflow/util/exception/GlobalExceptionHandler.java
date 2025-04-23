@@ -179,7 +179,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ToolNotFoundException.class)
-    public ResponseEntity<?> handlerToolNotFoundException(HttpServletRequest request, UserNotFoundException exception) {
+    public ResponseEntity<?> handlerToolNotFoundException(HttpServletRequest request, ToolNotFoundException exception) {
         ApiError apiError = new ApiError();
         apiError.setBackendMessage(exception.getLocalizedMessage());
         apiError.setUrl(request.getRequestURL().toString());
