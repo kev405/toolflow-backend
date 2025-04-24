@@ -177,4 +177,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
+
+    @ExceptionHandler(ToolNotFoundException.class)
+    public ResponseEntity<?> handlerToolNotFoundException(HttpServletRequest request, ToolNotFoundException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setBackendMessage(exception.getLocalizedMessage());
+        apiError.setUrl(request.getRequestURL().toString());
+        apiError.setMethod(request.getMethod());
+        apiError.setTimestamp(LocalDateTime.now());
+        apiError.setMessage("La herramienta no existe");
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
 }
