@@ -9,7 +9,7 @@ spring:
     url: jdbc:postgresql://185.194.216.41:5432/toolflow
     # url: jdbc:postgresql://localhost:5432/toolflow
     username: postgres
-    password: "secret"
+    password: "othersecret"
     hikari:
       maxLifetime: 1800000
       maximum-pool-size: 10
