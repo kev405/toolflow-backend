@@ -13,10 +13,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Clonar el repositorio que contiene el código fuente de la API en la rama main
-                git branch: 'master', url: 'https://github.com/kev405/toolflow-backend.git'
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/master']],     // o main
+                          userRemoteConfigs: [[
+                              url: 'https://github.com/kev405/toolflow-backend.git',
+                              credentialsId: 'github'     // PAT read-only
+                          ]]])
+                }
             }
-        }
 
         stage('Construir API') {
             steps {
