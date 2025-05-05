@@ -270,15 +270,14 @@ class ToolServiceImplTest {
     }
 
     @Test
-    void shouldUpdateOnlyAvailableIfOthersAreNull() {
+    void shouldUpdateOnlyAvailableIfOthersAreZero() {
         Tool tool = new Tool();
         tool.setAvailable(0);
-        tool.setDamaged(null);
-        tool.setOnLoan(null);
+        tool.setDamaged(0);
+        tool.setOnLoan(0);
 
         ToolStockRequest request = new ToolStockRequest();
-        request.setAvailable(8); // solo este no es null
-
+        request.setAvailable(8);
         when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
         when(toolRepository.save(any())).thenReturn(tool);
         when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
@@ -289,8 +288,9 @@ class ToolServiceImplTest {
         verify(toolRepository).save(toolCaptor.capture());
         Tool saved = toolCaptor.getValue();
         assertThat(saved.getAvailable()).isEqualTo(8);
-        assertThat(saved.getDamaged()).isNull(); // no lo tocamos
-        assertThat(saved.getQuantity()).isEqualTo(8); // solo available suma
+        assertThat(saved.getDamaged()).isEqualTo(0); // corregido
+        assertThat(saved.getOnLoan()).isEqualTo(0);  // corregido
+        assertThat(saved.getQuantity()).isEqualTo(8);
     }
 
     @Test
@@ -340,5 +340,56 @@ class ToolServiceImplTest {
         assertThatThrownBy(service::getCurrentUserId)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("No authenticated user found.");
+    }
+
+    @Test
+    void shouldUpdateOnlyDamagedIfOthersAreZero() {
+        Tool tool = new Tool();
+        tool.setAvailable(0); // no null
+        tool.setDamaged(0);
+        tool.setOnLoan(0);
+
+        ToolStockRequest request = new ToolStockRequest();
+        request.setDamaged(4); // solo este se actualiza
+
+        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
+        when(toolRepository.save(any())).thenReturn(tool);
+        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
+
+        ToolResponse response = toolService.updateStock(1L, request);
+
+        assertThat(response).isNotNull();
+        verify(toolRepository).save(toolCaptor.capture());
+        Tool saved = toolCaptor.getValue();
+        assertThat(saved.getDamaged()).isEqualTo(4);
+        assertThat(saved.getAvailable()).isEqualTo(0); // ahora 0 en lugar de null
+        assertThat(saved.getOnLoan()).isEqualTo(0);    // ahora 0 en lugar de null
+        assertThat(saved.getQuantity()).isEqualTo(4);  // suma total
+    }
+
+
+    @Test
+    void shouldUpdateOnlyOnLoanIfOthersAreZero() {
+        Tool tool = new Tool();
+        tool.setAvailable(0);
+        tool.setDamaged(0);
+        tool.setOnLoan(0);
+
+        ToolStockRequest request = new ToolStockRequest();
+        request.setOnLoan(5);
+
+        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
+        when(toolRepository.save(any())).thenReturn(tool);
+        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
+
+        ToolResponse response = toolService.updateStock(1L, request);
+
+        assertThat(response).isNotNull();
+        verify(toolRepository).save(toolCaptor.capture());
+        Tool saved = toolCaptor.getValue();
+        assertThat(saved.getOnLoan()).isEqualTo(5);
+        assertThat(saved.getAvailable()).isEqualTo(0);
+        assertThat(saved.getDamaged()).isEqualTo(0);
+        assertThat(saved.getQuantity()).isEqualTo(5);
     }
 }
