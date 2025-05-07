@@ -46,9 +46,9 @@ public class Category {
 
     /**
      * The name of the tool category.
-     * For example: "Hand Tools", "Electrical Tools", "Safety Equipment".
      */
     @NotNull
+    @Column(unique = true)
     private String name;
 
     /**

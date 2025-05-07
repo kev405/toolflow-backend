@@ -191,7 +191,9 @@ public class ToolServiceImpl implements ToolService {
         if (tool.getId() == null) {
             tool.setCreatedAt(LocalDateTime.now());
             tool.setCreatedBy(userId);
+            tool.setStatus(true);
         } else {
+            tool.setStatus(existingTool.getStatus() != null ? existingTool.getStatus() : true);
             tool.setCreatedAt(existingTool.getCreatedAt());
             tool.setCreatedBy(existingTool.getCreatedBy());
         }
