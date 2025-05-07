@@ -65,6 +65,11 @@ public class ToolResponse implements Serializable {
     private Boolean consumable;
 
     /**
+     * Notes or additional information about the tool.
+     */
+    private String notes;
+
+    /**
      * The minimum quantity required in stock before triggering an alert.
      */
     private Integer minimalRegistration;
