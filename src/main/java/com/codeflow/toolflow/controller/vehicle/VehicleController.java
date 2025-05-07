@@ -21,6 +21,12 @@ import com.codeflow.toolflow.dto.vehicle.VehicleRequest;
 import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
 import com.codeflow.toolflow.service.vehicle.VehicleService;
 
+/**
+ * REST controller that exposes CRUD operations for {@link VehicleResponse} resources.
+ * <p>
+ * <strong>Security:</strong> Todas las rutas requieren el rol <code>ADMINISTRATOR</code>.
+ * </p>
+ */
 @RestController
 @RequestMapping("/vehicle")
 public class VehicleController {
@@ -32,19 +38,10 @@ public class VehicleController {
     @GetMapping(path = "/findBy")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     @Operation(
-            summary = "Search Vehicles",
-            description = "Returns a paginated list of vehicles filtered by one or more optional attributes.",
-            parameters = {
-                    @Parameter(name = "vehicleType",  in = ParameterIn.QUERY, description = "Vehicle type (e.g. Car, Truck)", required = false),
-                    @Parameter(name = "plate",        in = ParameterIn.QUERY, description = "License-plate number",          required = false),
-                    @Parameter(name = "model",        in = ParameterIn.QUERY, description = "Vehicle model",                 required = false),
-                    @Parameter(name = "color",        in = ParameterIn.QUERY, description = "Exterior color",                required = false),
-                    @Parameter(name = "numberChasis", in = ParameterIn.QUERY, description = "Chassis/VIN number",           required = false),
-                    @Parameter(name = "brand",        in = ParameterIn.QUERY, description = "Manufacturer brand",            required = false),
-                    @Parameter(name = "location",     in = ParameterIn.QUERY, description = "Current location",             required = false)
-            }
+            summary = "Search vehicles",
+            description = "Returns a paginated list of vehicles filtered by any combination of query parameters."
     )
-    @ApiResponses(value = {
+    @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
                     description   = "Page of vehicles retrieved successfully",
@@ -56,56 +53,67 @@ public class VehicleController {
                     content       = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
-    public Page<VehicleResponse> findBy(@RequestParam(required = false) String vehicleType,
-                                        @RequestParam(required = false) String plate,
-                                        @RequestParam(required = false) String model,
-                                        @RequestParam(required = false) String color,
-                                        @RequestParam(required = false) String numberChasis,
-                                        @RequestParam(required = false) String brand,
-                                        @RequestParam(required = false) String location,
-                                        Pageable page) {
-        return vehicleService.getPage(vehicleType, plate, model, color, numberChasis,
-                brand, location, page);
+    public Page<VehicleResponse> findBy(
+            @Parameter(in = ParameterIn.QUERY, description = "Vehicle type, e.g. <em>Car</em>, <em>Truck</em>")   @RequestParam(required = false) String vehicleType,
+            @Parameter(in = ParameterIn.QUERY, description = "License-plate number")                                @RequestParam(required = false) String plate,
+            @Parameter(in = ParameterIn.QUERY, description = "Model designation")                                   @RequestParam(required = false) String model,
+            @Parameter(in = ParameterIn.QUERY, description = "Primary exterior color")                              @RequestParam(required = false) String color,
+            @Parameter(in = ParameterIn.QUERY, description = "Chassis / VIN number")                                @RequestParam(required = false) String numberChasis,
+            @Parameter(in = ParameterIn.QUERY, description = "Manufacturer brand")                                  @RequestParam(required = false) String brand,
+            @Parameter(in = ParameterIn.QUERY, description = "Current location label or coordinates")               @RequestParam(required = false) String location,
+            Pageable page) {
+
+        return vehicleService.getPage(vehicleType, plate, model, color, numberChasis, brand, location, page);
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     @Operation(
-            summary = "Register New Vehicle",
-            description = "Creates a new tool with the provided tool details.",
+            summary = "Register a new vehicle",
+            description = "Creates a new vehicle with the supplied attributes.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Vehicle registration payload. Contains data such as name, brand, quantity, availability, damaged, onLoan, consumable, etc.",
-                    content = @Content(schema = @Schema(implementation = VehicleRequest.class))
+                    required     = true,
+                    description  = "Vehicle registration payload",
+                    content      = @Content(schema = @Schema(implementation = VehicleRequest.class))
             )
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Vehicle successfully created", content = @Content(schema = @Schema(implementation = VehicleResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description   = "Vehicle successfully created",
+                    content       = @Content(schema = @Schema(implementation = VehicleResponse.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description   = "Validation error",
+                    content       = @Content(schema = @Schema(implementation = ApiError.class))
+            )
     })
     public ResponseEntity<VehicleResponse> registerOne(@Valid @RequestBody VehicleRequest vehicleRequest) {
         VehicleResponse response = vehicleService.registerOneVehicle(vehicleRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     @Operation(
-            summary = "Update Vehicle",
-            description = "Updates an existing tool using the provided details.",
-            parameters = {
-                    @Parameter(in = ParameterIn.PATH, name = "id", description = "ID of the tool to be updated", required = true)
-            },
+            summary = "Update an existing vehicle",
+            description = "Modifies an existing vehicle identified by its ID.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Vehicle update payload.",
-                    content = @Content(schema = @Schema(implementation = VehicleRequest.class))
+                    required    = true,
+                    description = "Vehicle update payload",
+                    content     = @Content(schema = @Schema(implementation = VehicleRequest.class))
             )
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Vehicle successfully updated", content = @Content(schema = @Schema(implementation = VehicleResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Vehicle not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Vehicle successfully updated",
+                    content = @Content(schema = @Schema(implementation = VehicleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Vehicle not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
-    public ResponseEntity<VehicleResponse> updateOne(@PathVariable Long id, @Valid @RequestBody VehicleRequest vehicleRequest) {
+    public ResponseEntity<VehicleResponse> updateOne(@Valid @RequestBody VehicleRequest vehicleRequest) {
         VehicleResponse response = vehicleService.updateOneVehicle(vehicleRequest);
         return ResponseEntity.ok(response);
     }
@@ -113,16 +121,19 @@ public class VehicleController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     @Operation(
-            summary = "Delete Vehicle",
-            description = "Deletes (soft) a tool by marking its status as false.",
-            parameters = {
-                    @Parameter(in = ParameterIn.PATH, name = "id", description = "ID of the tool to be deleted", required = true)
-            }
+            summary = "Delete a vehicle",
+            description = "Performs a delete: the vehicle is removing.",
+            parameters = @Parameter(
+                    name = "id", in = ParameterIn.PATH, required = true,
+                    description = "Unique identifier of the vehicle to delete"
+            )
     )
-    @ApiResponses(value = {
+    @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Vehicle successfully deleted"),
-            @ApiResponse(responseCode = "400", description = "Invalid ID", content = @Content(schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "404", description = "Vehicle not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+            @ApiResponse(responseCode = "400", description = "Invalid ID",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Vehicle not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<Void> deleteOne(@PathVariable Long id) {
         vehicleService.deleteOneVehicle(id);
@@ -132,18 +143,20 @@ public class VehicleController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     @Operation(
-            summary = "Get Vehicle by ID",
-            description = "Fetches a tool using its unique identifier.",
-            parameters = {
-                    @Parameter(name = "id", in = ParameterIn.PATH, description = "Vehicle ID", required = true)
-            }
+            summary = "Retrieve a vehicle by ID",
+            description = "Returns the vehicle with the specified ID.",
+            parameters = @Parameter(
+                    name = "id", in = ParameterIn.PATH, required = true,
+                    description = "Unique identifier of the desired vehicle"
+            )
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Vehicle retrieved successfully", content = @Content(schema = @Schema(implementation = VehicleResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Vehicle not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Vehicle retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = VehicleResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Vehicle not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     public ResponseEntity<VehicleResponse> getOne(@PathVariable Long id) {
         return ResponseEntity.ok(vehicleService.getOne(id));
     }
-
 }
