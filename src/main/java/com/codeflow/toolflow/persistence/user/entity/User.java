@@ -77,7 +77,7 @@ public class User {
      * Represents the phone number of the user.
      * This field is optional and may contain the user's contact number.
      */
-    private Integer phone;
+    private Long phone;
 
     /**
      * Represents the email address of the user.

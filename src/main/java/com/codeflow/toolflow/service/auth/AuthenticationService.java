@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import static java.util.stream.Collectors.toList;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -50,6 +52,10 @@ public class AuthenticationService {
         authenticationManager.authenticate(authentication);
         User user = userService.findOneByUsername(autRequest.getUsername()).orElseThrow(() ->
                 new ObjectNotFoundException("User not found. Username: " + autRequest.getUsername()));
+
+        if (!user.isStatus()) {
+            throw new AccessDeniedException("User is disabled or not allowed to log in.");
+        }
 
         UserDetails userDetails = UserLogin.builder()
                 .id(user.getId())

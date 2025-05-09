@@ -95,15 +95,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateOneUser(Long id, UserRequest userRequest) {
         User existingUser = findOneById(id);
-        isValidPassword(userRequest);
+        if (userRequest.getPassword() != null) {
+            isValidPassword(userRequest);
+        }
         List<Role> roles = areValidateRoles(userRequest.getRoles());
 
         existingUser.setUsername(userRequest.getUsername());
         existingUser.setName(userRequest.getName());
         existingUser.setLastName(userRequest.getLastName());
         existingUser.setEmail(userRequest.getEmail());
-        existingUser.setPhone(Integer.parseInt(userRequest.getPhone()));
-        existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        existingUser.setPhone(Long.valueOf(userRequest.getPhone()));
+        if (userRequest.getPassword() != null) {
+            existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
+        }
         existingUser.setUpdatedAt(LocalDateTime.now());
         existingUser.setUpdatedBy(getCurrentUserId());
 
@@ -144,7 +148,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Page<UserResponse> getPage(Pageable pageable, String search, String searchColumn) {
-        Specification<User> spec = Specification.where(null);
+        Specification<User> spec = Specification.where(UserSpecifications.userIsActive());
 
         if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
             spec = spec.and(UserSpecifications.searchByColumn(searchColumn, search));
