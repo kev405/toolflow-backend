@@ -14,8 +14,8 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:5173")
-                        // O múltiples orígenes: .allowedOrigins("http://localhost:5173", "https://tu-dominio.com")
+//                        .allowedOrigins("http://localhost:5173")
+                         .allowedOrigins("http://localhost:5173", "http://185.194.216.54:3000")
                         // NUNCA uses "*" si necesitas credenciales (allowCredentials(true))
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                         .allowedHeaders("*")
