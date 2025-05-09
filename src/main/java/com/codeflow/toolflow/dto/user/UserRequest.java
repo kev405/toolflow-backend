@@ -51,7 +51,7 @@ public class UserRequest implements Serializable {
      * @NotNull - This field cannot be null.
      * @Size(min = 8) - The password must be at least 8 characters long.
      */
-    @NotNull(message = "Password is required")
+    @NotNull(message = "Password is required", groups = {OnCreate.class})
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
@@ -61,7 +61,7 @@ public class UserRequest implements Serializable {
      * @NotNull - This field cannot be null.
      * @Size(min = 8) - The repeated password must be at least 8 characters long.
      */
-    @NotNull(message = "Repeated password is required")
+    @NotNull(message = "Repeated password is required", groups = {OnCreate.class})
     @Size(min = 8, message = "Repeated password must be at least 8 characters long")
     private String repeatedPassword;
 
@@ -76,9 +76,9 @@ public class UserRequest implements Serializable {
     /**
      * The phone number of the user.
      *
-     * @Pattern - The phone number must be exactly 10 digits.
+     * @Pattern - The phone number must be between 1 and 11 digits.
      */
-    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be exactly 10 digits")
+    @Pattern(regexp = "^[0-9]{1,11}$", message = "Phone number must be between 1 and 11 digits")
     private String phone;
 
     /**

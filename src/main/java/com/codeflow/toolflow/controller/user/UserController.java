@@ -1,6 +1,8 @@
 package com.codeflow.toolflow.controller.user;
 
 import com.codeflow.toolflow.dto.ApiError;
+import com.codeflow.toolflow.dto.user.OnCreate;
+import com.codeflow.toolflow.dto.user.OnUpdate;
 import com.codeflow.toolflow.dto.user.UserRequest;
 import com.codeflow.toolflow.dto.user.UserResponse;
 import com.codeflow.toolflow.service.user.UserService;
@@ -11,7 +13,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -49,7 +51,7 @@ public class UserController {
     })
     @PostMapping()
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    public ResponseEntity<UserResponse> registerOne(@RequestBody @Valid UserRequest userRequest) {
+    public ResponseEntity<UserResponse> registerOne(@RequestBody @Validated(OnCreate.class) UserRequest userRequest) {
         UserResponse user = userService.registerOneUser(userRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
@@ -83,7 +85,7 @@ public class UserController {
     )
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    public ResponseEntity<UserResponse> updateOne(@PathVariable Long id, @RequestBody @Valid UserRequest userRequest) {
+    public ResponseEntity<UserResponse> updateOne(@PathVariable Long id, @RequestBody @Validated(OnUpdate.class) UserRequest userRequest) {
         UserResponse user = userService.updateOneUser(id, userRequest);
         return ResponseEntity.status(HttpStatus.OK).body(user);
     }

@@ -152,7 +152,7 @@ class UserServiceImplTest {
         existingUser.setName("Old");
         existingUser.setLastName("User");
         existingUser.setEmail("old@example.com");
-        existingUser.setPhone(123456789);
+        existingUser.setPhone(123456789L);
         existingUser.setStatus(true);
         existingUser.setUserRoles(new ArrayList<>());
 
@@ -216,7 +216,7 @@ class UserServiceImplTest {
         user.setName("Admin");
         user.setLastName("Istrador");
         user.setEmail("admin@example.com");
-        user.setPhone(123456789);
+        user.setPhone(123456789L);
         user.setUserRoles(new ArrayList<>());
 
         Page<User> userPage = new PageImpl<>(List.of(user), pageable, 1);
@@ -285,7 +285,7 @@ class UserServiceImplTest {
         user.setName("Admin");
         user.setLastName("Istrador");
         user.setEmail("admin@example.com");
-        user.setPhone(123456789);
+        user.setPhone(123456789L);
         user.setUserRoles(new ArrayList<>());
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -379,7 +379,7 @@ class UserServiceImplTest {
         mappedUser.setName("John");
         mappedUser.setLastName("Doe");
         mappedUser.setEmail("john.doe@example.com");
-        mappedUser.setPhone(123456789);
+        mappedUser.setPhone(123456789L);
         mappedUser.setUserRoles(new ArrayList<>());
 
         when(userMapper.toEntity(request)).thenReturn(mappedUser);
@@ -390,7 +390,7 @@ class UserServiceImplTest {
         savedUser.setName("John");
         savedUser.setLastName("Doe");
         savedUser.setEmail("john.doe@example.com");
-        savedUser.setPhone(123456789);
+        savedUser.setPhone(123456789L);
         savedUser.setUserRoles(List.of(UserRole.builder().role(Role.ADMINISTRATOR).build()));
 
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
@@ -474,7 +474,7 @@ class UserServiceImplTest {
         user.setName("John");
         user.setLastName("Doe");
         user.setEmail("john.doe@example.com");
-        user.setPhone(123456789);
+        user.setPhone(123456789L);
 
         UserRole userRole = new UserRole();
         userRole.setRole(Role.STUDENT);
