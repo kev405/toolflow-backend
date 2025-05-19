@@ -218,6 +218,19 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Retrieves all users from the database.
+     *
+     * @return a list of all users.
+     */
+    @Override
+    public List<UserResponse> getAllTeachers() {
+        return userRepository.findUsersByRole(Role.TEACHER)
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    /**
      * Retrieves a user by id or throws an exception if not found.
      *
      * @param id the user's id.

@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.config.security;
 
+import com.codeflow.toolflow.config.security.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,6 @@ import org.springframework.security.config.annotation.web.configurers.AuthorizeH
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import com.codeflow.toolflow.config.security.filter.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -26,31 +26,6 @@ public class HttpSecurityConfig {
     private final AuthenticationProvider daoAuthProvider;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
-        SecurityFilterChain filterChain = http
-                .csrf( csrfConfig -> csrfConfig.disable() )
-                .cors(Customizer.withDefaults())
-                .sessionManagement( sessMagConfig -> sessMagConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS) )
-                .authenticationProvider(daoAuthProvider)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests( authReqConfig -> {
-                    buildRequestMatchers(authReqConfig);
-                } )
-                .build();
-
-        return filterChain;
-    }
-
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
-        // Al no establecer ningún prefijo, se compararán los roles exactamente como se definen (por ejemplo, "ADMINISTRATOR")
-        expressionHandler.setDefaultRolePrefix("");
-        return expressionHandler;
-    }
 
     private static void buildRequestMatchers(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry authReqConfig) {
 //    /*
@@ -98,12 +73,37 @@ public class HttpSecurityConfig {
                     /*
                     Autorización de endpoints públicos
                      */
-        authReqConfig.requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll();
+        authReqConfig.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
 
         authReqConfig.requestMatchers(HttpMethod.POST, "/auth/authenticate").permitAll();
         authReqConfig.requestMatchers(HttpMethod.GET, "/auth/validate-token").permitAll();
 
         authReqConfig.anyRequest().authenticated();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        SecurityFilterChain filterChain = http
+                .csrf(csrfConfig -> csrfConfig.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(sessMagConfig -> sessMagConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(daoAuthProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(authReqConfig -> {
+                    buildRequestMatchers(authReqConfig);
+                })
+                .build();
+
+        return filterChain;
+    }
+
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
+        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+        // Al no establecer ningún prefijo, se compararán los roles exactamente como se definen (por ejemplo, "ADMINISTRATOR")
+        expressionHandler.setDefaultRolePrefix("");
+        return expressionHandler;
     }
 
 }

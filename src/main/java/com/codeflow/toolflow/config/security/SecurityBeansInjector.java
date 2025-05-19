@@ -1,5 +1,9 @@
 package com.codeflow.toolflow.config.security;
 
+import com.codeflow.toolflow.dto.auth.UserLogin;
+import com.codeflow.toolflow.persistence.user.repository.UserRepository;
+import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
+import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,10 +14,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import com.codeflow.toolflow.dto.auth.UserLogin;
-import com.codeflow.toolflow.persistence.user.repository.UserRepository;
-import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
-import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,21 +29,21 @@ public class SecurityBeansInjector {
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(){
+    public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationStrategy = new DaoAuthenticationProvider();
-        authenticationStrategy.setPasswordEncoder( passwordEncoder() );
-        authenticationStrategy.setUserDetailsService( userDetailsService() );
+        authenticationStrategy.setPasswordEncoder(passwordEncoder());
+        authenticationStrategy.setUserDetailsService(userDetailsService());
 
         return authenticationStrategy;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService() {
         return (username) -> {
             return userRepository.findByUsername(username).map(user -> {
                         UserLogin userLogin = UserLogin.builder()

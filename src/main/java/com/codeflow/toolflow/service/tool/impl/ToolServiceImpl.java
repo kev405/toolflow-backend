@@ -132,6 +132,15 @@ public class ToolServiceImpl implements ToolService {
         return tools.map(toolMapper::toResponse);
     }
 
+    /**
+     * Updates the stock of a tool identified by its ID.
+     * The method retrieves the existing record, applies updates from the {@link ToolStockRequest},
+     * and recalculates the total quantity.
+     *
+     * @param id      the ID of the tool to be updated
+     * @param request the object containing the updated stock data
+     * @return the updated {@link ToolResponse}
+     */
     @Override
     public ToolResponse updateStock(Long id, ToolStockRequest request) {
         Tool tool = toolRepository.findById(id)
@@ -158,6 +167,19 @@ public class ToolServiceImpl implements ToolService {
 
         Tool updatedTool = toolRepository.save(tool);
         return toolMapper.toResponse(updatedTool);
+    }
+
+    /**
+     * Retrieves all tools in the system.
+     *
+     * @return a list of {@link ToolResponse} objects representing each tool
+     */
+    @Override
+    public List<ToolResponse> getAll() {
+        return toolRepository.findAll()
+                .stream()
+                .map(toolMapper::toResponse)
+                .toList();
     }
 
     /**

@@ -55,7 +55,7 @@ public class Tool {
      * The total quantity of this tool available in inventory.
      */
     @NotNull
-    @Column(columnDefinition ="integer default 0")
+    @Column(columnDefinition = "integer default 0")
     private Integer quantity = 0;
 
     /**
@@ -68,19 +68,19 @@ public class Tool {
      * The number of units currently available for use.
      * This value is updated as tools are loaned or returned.
      */
-    @Column(columnDefinition ="integer default 0")
+    @Column(columnDefinition = "integer default 0")
     private Integer available = 0;
 
     /**
      * The number of tools marked as damaged or not usable.
      */
-    @Column(columnDefinition ="integer default 0")
+    @Column(columnDefinition = "integer default 0")
     private Integer damaged = 0;
 
     /**
      * The number of units currently loaned out to users.
      */
-    @Column(columnDefinition ="integer default 0")
+    @Column(columnDefinition = "integer default 0")
     private Integer onLoan = 0;
 
     /**

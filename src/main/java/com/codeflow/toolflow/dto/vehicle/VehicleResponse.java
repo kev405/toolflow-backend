@@ -1,13 +1,14 @@
 package com.codeflow.toolflow.dto.vehicle;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
  * Data Transfer Object (DTO) representing the response data for a vehicle.

@@ -1,18 +1,5 @@
 package com.codeflow.toolflow.service.auth;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import static java.util.stream.Collectors.toList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
 import com.codeflow.toolflow.dto.auth.AuthenticationRequest;
 import com.codeflow.toolflow.dto.auth.AuthenticationResponse;
 import com.codeflow.toolflow.dto.auth.UserLogin;
@@ -20,6 +7,20 @@ import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
 import com.codeflow.toolflow.service.user.UserService;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @Log4j2
@@ -74,10 +75,10 @@ public class AuthenticationService {
 
     public boolean validateToken(String jwt) {
 
-        try{
+        try {
             jwtService.extractUsername(jwt);
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error(e.getMessage());
             return false;
         }
