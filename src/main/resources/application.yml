@@ -34,6 +34,18 @@ spring:
         generate_statistics: false
     open-in-view: false
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: itzsaky@gmail.com
+    password: qrch botw yptd zcpl
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 server:
   port: 9009
 

@@ -45,4 +45,11 @@ public interface LoanService {
      * @param loanId the ID of the loan to delete
      */
     void deleteOne(Long loanId);
+
+    /**
+     * Retrieves a list of all loans in the system.
+     *
+     * @return a list of {@link LoanResponse} objects representing all loans
+     */
+    List<LoanResponse> getAllLoans();
 }

@@ -11,4 +11,3 @@ public enum LoanStatus {
     CANCELLED,                            // CANCELADO
     OVERDUE                               // ATRASADO
 }
-
