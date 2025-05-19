@@ -1,7 +1,10 @@
 package com.codeflow.toolflow.dto.tool;
 
 import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Data Transfer Object (DTO) used for optionally updating stock-related fields of a tool.
@@ -9,6 +12,9 @@ import lombok.Data;
  * All fields in this DTO are optional; only non-null values will be updated.
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ToolStockRequest {
 
     /**

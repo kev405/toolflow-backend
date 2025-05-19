@@ -8,6 +8,7 @@ import com.codeflow.toolflow.service.tool.ToolService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -173,5 +174,36 @@ public class ToolController {
 
         ToolResponse updatedTool = toolService.updateStock(id, toolStockRequest);
         return ResponseEntity.ok(updatedTool);
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR', 'TEACHER')")
+    @Operation(
+            summary = "Get all tools",
+            description = "Retrieves a complete list of tools available in the system.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "List of tools retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = ToolResponse.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Access denied - requires ADMINISTRATOR, TOOL_ADMINISTRATOR, or TEACHER role",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Unexpected server error",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    public ResponseEntity<List<ToolResponse>> getAllTools() {
+        List<ToolResponse> tools = toolService.getAll();
+        return ResponseEntity.ok(tools);
     }
 }

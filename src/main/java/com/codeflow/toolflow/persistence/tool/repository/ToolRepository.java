@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Repository interface for managing {@link Tool} entities in the database.
  * <p>
@@ -18,4 +20,10 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ToolRepository extends JpaRepository<Tool, Long>, JpaSpecificationExecutor<Tool> {
+    /**
+     * Finds all tools that are active and have a non-null available value greater than zero.
+     *
+     * @return a list of active {@link Tool} entities with available > 0
+     */
+    List<Tool> findAllByStatusTrueAndAvailableIsNotNullAndAvailableGreaterThan(int value);
 }

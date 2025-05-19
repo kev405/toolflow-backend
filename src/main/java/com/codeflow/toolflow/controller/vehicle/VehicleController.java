@@ -1,6 +1,9 @@
 package com.codeflow.toolflow.controller.vehicle;
 
-import jakarta.validation.Valid;
+import com.codeflow.toolflow.dto.ApiError;
+import com.codeflow.toolflow.dto.vehicle.VehicleRequest;
+import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
+import com.codeflow.toolflow.service.vehicle.VehicleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -9,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,10 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import com.codeflow.toolflow.dto.ApiError;
-import com.codeflow.toolflow.dto.vehicle.VehicleRequest;
-import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
-import com.codeflow.toolflow.service.vehicle.VehicleService;
 
 /**
  * REST controller that exposes CRUD operations for {@link VehicleResponse} resources.
@@ -44,23 +44,23 @@ public class VehicleController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description   = "Page of vehicles retrieved successfully",
-                    content       = @Content(array = @ArraySchema(schema = @Schema(implementation = VehicleResponse.class)))
+                    description = "Page of vehicles retrieved successfully",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = VehicleResponse.class)))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description   = "Invalid filter or pagination parameters",
-                    content       = @Content(schema = @Schema(implementation = ApiError.class))
+                    description = "Invalid filter or pagination parameters",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
     public Page<VehicleResponse> findBy(
-            @Parameter(in = ParameterIn.QUERY, description = "Vehicle type, e.g. <em>Car</em>, <em>Truck</em>")   @RequestParam(required = false) String vehicleType,
-            @Parameter(in = ParameterIn.QUERY, description = "License-plate number")                                @RequestParam(required = false) String plate,
-            @Parameter(in = ParameterIn.QUERY, description = "Model designation")                                   @RequestParam(required = false) String model,
-            @Parameter(in = ParameterIn.QUERY, description = "Primary exterior color")                              @RequestParam(required = false) String color,
-            @Parameter(in = ParameterIn.QUERY, description = "Chassis / VIN number")                                @RequestParam(required = false) String numberChasis,
-            @Parameter(in = ParameterIn.QUERY, description = "Manufacturer brand")                                  @RequestParam(required = false) String brand,
-            @Parameter(in = ParameterIn.QUERY, description = "Current location label or coordinates")               @RequestParam(required = false) String location,
+            @Parameter(in = ParameterIn.QUERY, description = "Vehicle type, e.g. <em>Car</em>, <em>Truck</em>") @RequestParam(required = false) String vehicleType,
+            @Parameter(in = ParameterIn.QUERY, description = "License-plate number") @RequestParam(required = false) String plate,
+            @Parameter(in = ParameterIn.QUERY, description = "Model designation") @RequestParam(required = false) String model,
+            @Parameter(in = ParameterIn.QUERY, description = "Primary exterior color") @RequestParam(required = false) String color,
+            @Parameter(in = ParameterIn.QUERY, description = "Chassis / VIN number") @RequestParam(required = false) String numberChasis,
+            @Parameter(in = ParameterIn.QUERY, description = "Manufacturer brand") @RequestParam(required = false) String brand,
+            @Parameter(in = ParameterIn.QUERY, description = "Current location label or coordinates") @RequestParam(required = false) String location,
             Pageable page) {
 
         return vehicleService.getPage(vehicleType, plate, model, color, numberChasis, brand, location, page);
@@ -72,21 +72,21 @@ public class VehicleController {
             summary = "Register a new vehicle",
             description = "Creates a new vehicle with the supplied attributes.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required     = true,
-                    description  = "Vehicle registration payload",
-                    content      = @Content(schema = @Schema(implementation = VehicleRequest.class))
+                    required = true,
+                    description = "Vehicle registration payload",
+                    content = @Content(schema = @Schema(implementation = VehicleRequest.class))
             )
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
-                    description   = "Vehicle successfully created",
-                    content       = @Content(schema = @Schema(implementation = VehicleResponse.class))
+                    description = "Vehicle successfully created",
+                    content = @Content(schema = @Schema(implementation = VehicleResponse.class))
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description   = "Validation error",
-                    content       = @Content(schema = @Schema(implementation = ApiError.class))
+                    description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
             )
     })
     public ResponseEntity<VehicleResponse> registerOne(@Valid @RequestBody VehicleRequest vehicleRequest) {
@@ -100,9 +100,9 @@ public class VehicleController {
             summary = "Update an existing vehicle",
             description = "Modifies an existing vehicle identified by its ID.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required    = true,
+                    required = true,
                     description = "Vehicle update payload",
-                    content     = @Content(schema = @Schema(implementation = VehicleRequest.class))
+                    content = @Content(schema = @Schema(implementation = VehicleRequest.class))
             )
     )
     @ApiResponses({

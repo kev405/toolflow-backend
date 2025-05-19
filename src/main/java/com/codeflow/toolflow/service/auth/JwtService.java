@@ -1,18 +1,19 @@
 package com.codeflow.toolflow.service.auth;
 
-import lombok.extern.log4j.Log4j2;
-import java.security.Key;
-import java.util.Date;
-import java.util.Map;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.security.Key;
+import java.util.Date;
+import java.util.Map;
 
 @Service
 @Log4j2
@@ -27,7 +28,7 @@ public class JwtService {
     public String generateToken(UserDetails user, Map<String, Object> extraClaims) {
 
         Date issuedAt = new Date(System.currentTimeMillis());
-        Date expiration = new Date( (EXPIRATION_IN_MINUTES * 60 * 1000) + issuedAt.getTime() );
+        Date expiration = new Date((EXPIRATION_IN_MINUTES * 60 * 1000) + issuedAt.getTime());
         String jwt = Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(user.getUsername())
@@ -50,7 +51,7 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String jwt) {
-        return Jwts.parserBuilder().setSigningKey( generateKey() ).build()
+        return Jwts.parserBuilder().setSigningKey(generateKey()).build()
                 .parseClaimsJws(jwt).getBody();
     }
 }

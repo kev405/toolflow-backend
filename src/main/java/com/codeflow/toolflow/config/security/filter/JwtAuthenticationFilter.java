@@ -1,7 +1,16 @@
 package com.codeflow.toolflow.config.security.filter;
 
 
-import java.io.IOException;
+import com.codeflow.toolflow.dto.auth.UserLogin;
+import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
+import com.codeflow.toolflow.service.auth.JwtService;
+import com.codeflow.toolflow.service.user.UserService;
+import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,16 +18,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.log4j.Log4j2;
-import com.codeflow.toolflow.dto.auth.UserLogin;
-import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
-import com.codeflow.toolflow.service.user.UserService;
-import com.codeflow.toolflow.service.auth.JwtService;
-import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
+
+import java.io.IOException;
 
 @Component
 @Log4j2
@@ -40,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         //1. Obtener encabezado http llamado Authorization
         String authorizationHeader = request.getHeader("Authorization");//Bearer jwt
-        if(!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")){
+        if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -55,15 +56,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         //4. Setear objeto authentication dentro de security context holder
 
         UserLogin userLogin = userService.findOneByUsername(username).map(user -> UserLogin.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .username(user.getUsername())
-                .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
-                .build())
+                        .id(user.getId())
+                        .name(user.getName())
+                        .username(user.getUsername())
+                        .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
+                        .build())
                 .orElseThrow(() -> new ObjectNotFoundException("User not found. Username: " + username));
 
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            userLogin, null, userLogin.getAuthorities()
+                userLogin, null, userLogin.getAuthorities()
         );
         authToken.setDetails(new WebAuthenticationDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authToken);

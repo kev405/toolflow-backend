@@ -9,6 +9,7 @@ import com.codeflow.toolflow.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * REST controller for managing user operations.
@@ -213,5 +216,36 @@ public class UserController {
     public ResponseEntity<UserResponse> getOne(@PathVariable Long id) {
         UserResponse user = userService.getOne(id);
         return ResponseEntity.ok(user);
+    }
+
+    @Operation(
+            summary = "Get all users with TEACHERS role",
+            description = "Retrieves a list of all users that have been assigned the TEACHERS role.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "List of users retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = UserResponse.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Access denied - requires ADMINISTRATOR, TOOL_ADMINISTRATOR, or TEACHER role",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Unexpected server error",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    @GetMapping("/all/teachers")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR', 'TEACHER')")
+    public ResponseEntity<List<UserResponse>> getAllTeachers() {
+        List<UserResponse> users = userService.getAllTeachers();
+        return ResponseEntity.ok(users);
     }
 }

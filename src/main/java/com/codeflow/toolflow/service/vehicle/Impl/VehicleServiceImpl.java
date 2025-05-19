@@ -39,8 +39,8 @@ public class VehicleServiceImpl implements VehicleService {
      */
     @Override
     public VehicleResponse registerOneVehicle(VehicleRequest VehicleRequest) {
-        Vehicle entity       = vehicleMapper.toEntity(VehicleRequest);
-        Vehicle entitySaved  = vehicleRepository.save(entity);
+        Vehicle entity = vehicleMapper.toEntity(VehicleRequest);
+        Vehicle entitySaved = vehicleRepository.save(entity);
         return vehicleMapper.toResponse(entitySaved);
     }
 
@@ -54,8 +54,8 @@ public class VehicleServiceImpl implements VehicleService {
      */
     @Override
     public VehicleResponse updateOneVehicle(VehicleRequest VehicleRequest) {
-        Vehicle entity       = vehicleMapper.toEntity(VehicleRequest);
-        Vehicle entitySaved  = vehicleRepository.save(entity);
+        Vehicle entity = vehicleMapper.toEntity(VehicleRequest);
+        Vehicle entitySaved = vehicleRepository.save(entity);
         return vehicleMapper.toResponse(entitySaved);
     }
 

@@ -1,9 +1,9 @@
 package com.codeflow.toolflow.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import com.codeflow.toolflow.dto.RUserRole;
 import com.codeflow.toolflow.persistence.user.entity.UserRole;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserRoleMapper {

@@ -54,5 +54,19 @@ public interface ToolService {
      */
     Page<ToolResponse> getPage(Pageable pageable, List<String> filters);
 
+    /**
+     * Updates the stock of a tool.
+     *
+     * @param id               the ID of the tool to update
+     * @param toolStockRequest the object containing the updated stock data
+     * @return the updated {@link ToolResponse}
+     */
     ToolResponse updateStock(Long id, ToolStockRequest toolStockRequest);
+
+    /**
+     * Retrieves all tools in the system.
+     *
+     * @return a list of {@link ToolResponse} objects representing each tool
+     */
+    List<ToolResponse> getAll();
 }

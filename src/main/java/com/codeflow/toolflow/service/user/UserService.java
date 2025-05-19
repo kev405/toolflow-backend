@@ -6,6 +6,7 @@ import com.codeflow.toolflow.persistence.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -65,4 +66,11 @@ public interface UserService {
      * @return a {@code UserResponse} representing the details of the retrieved user.
      */
     UserResponse getOne(Long id);
+
+    /**
+     * Retrieves a list of all users in the system.
+     *
+     * @return a {@code List<UserResponse>} containing all users.
+     */
+    List<UserResponse> getAllTeachers();
 }
