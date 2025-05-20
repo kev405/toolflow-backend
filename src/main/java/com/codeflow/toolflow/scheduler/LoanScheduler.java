@@ -85,7 +85,7 @@ public class LoanScheduler {
                 }
 
                 String reponsibleText = "Responsable del prestamo: " + loan.getResponsible().getName() + " " +
-                        loan.getResponsible().getLastName() + " Docente asignado: " + loan.getTeacher().getName() + " " + loan.getTeacher().getLastName();
+                        loan.getResponsible().getLastName() + "\n" + "Docente asignado: " + loan.getTeacher().getName() + " " + loan.getTeacher().getLastName();
 
                 emailService.sendSimpleEmail(correoEncargado, head,
                         reponsibleText + "\n" + body + "\n" + loan.getDueDate());
@@ -138,7 +138,7 @@ public class LoanScheduler {
                 }
 
                 String reponsibleText = "Responsable del prestamo: " + loan.getResponsible().getName() + " " +
-                        loan.getResponsible().getLastName() + " Docente asignado: " + loan.getTeacher().getName() +
+                        loan.getResponsible().getLastName() + "\n" + " Docente asignado: " + loan.getTeacher().getName() +
                         " " +loan.getTeacher().getLastName();
 
                 emailService.sendSimpleEmail(correoEncargado, head,
