@@ -8,10 +8,12 @@ import com.codeflow.toolflow.mapper.tool.ToolMapper;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
 import com.codeflow.toolflow.persistence.tool.repository.ToolRepository;
 import com.codeflow.toolflow.persistence.tool.repository.ToolSpecifications;
+import com.codeflow.toolflow.service.email.EmailService;
 import com.codeflow.toolflow.service.category.CategoryService;
 import com.codeflow.toolflow.service.tool.ToolService;
 import com.codeflow.toolflow.util.exception.ToolNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,6 +38,13 @@ public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final CategoryService categoryService;
     private final ToolMapper toolMapper;
+
+    private EmailService emailService;
+
+    @Autowired
+    public void setEmailService(EmailService emailService) {
+        this.emailService = emailService;
+    }
 
     /**
      * Registers a new tool in the system based on the data received in the {@link ToolRequest}.
@@ -69,9 +78,18 @@ public class ToolServiceImpl implements ToolService {
     public ToolResponse updateOneTool(Long id, ToolRequest request) {
         Tool existing = findOneById(id);
         Tool updated = mapRequestToEntity(request, existing);
-        int totalQuantity = updated.getAvailable() + updated.getDamaged() + updated.getOnLoan();
+        int totalQuantity = updated.getAvailable() - updated.getDamaged() + updated.getOnLoan();
         updated.setQuantity(totalQuantity);
+
         Tool saved = toolRepository.save(updated);
+
+        String email = "samuel.galindo@correounivalle.edu.co";
+
+        if(updated.getMinimalRegistration() !=null && updated.getAvailable() != null
+                && updated.getMinimalRegistration() > updated.getAvailable()) {
+            emailService.sendSimpleEmail(email, "Stock Alert",
+                    "The stock of tool " + updated.getToolName() + " is below the minimum registration level.");
+        }
         return toolMapper.toResponse(saved);
     }
 
@@ -165,7 +183,16 @@ public class ToolServiceImpl implements ToolService {
         tool.setUpdatedAt(LocalDateTime.now());
         tool.setUpdatedBy(getCurrentUserId());
 
+        String email = "samuel.galindo@correounivalle.edu.co";
+
         Tool updatedTool = toolRepository.save(tool);
+
+        if(updatedTool !=null && updatedTool.getMinimalRegistration() !=null && updatedTool.getAvailable() != null
+                && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
+            emailService.sendSimpleEmail(email, "Stock Alert",
+                    "The stock of tool " + updatedTool.getToolName() + " is below the minimum registration level.");
+        }
+
         return toolMapper.toResponse(updatedTool);
     }
 

@@ -25,8 +25,7 @@ public class LoanScheduler {
     }
 
     // Variables simuladas
-    private final LocalDate fechaVencimiento = LocalDate.of(2025, 5, 15); // Simula una fecha vencida
-    private final String correoEncargado = "samuel.galindo@correounivalle.edu.co";
+    private final String correoEncargado = "samuel.galindo@correounivalle.edu.co"; //Cambiar por el correo del encargado
 
     @Scheduled(cron = "0 0 0  * * *") // Todos los días a las 00:00
     public void procesarVencimientos() {
