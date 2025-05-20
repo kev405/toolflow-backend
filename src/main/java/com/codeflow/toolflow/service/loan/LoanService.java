@@ -2,6 +2,7 @@ package com.codeflow.toolflow.service.loan;
 
 import com.codeflow.toolflow.dto.loan.LoanRequest;
 import com.codeflow.toolflow.dto.loan.LoanResponse;
+import com.codeflow.toolflow.persistence.loan.entity.Loan;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -51,5 +52,5 @@ public interface LoanService {
      *
      * @return a list of {@link LoanResponse} objects representing all loans
      */
-    List<LoanResponse> getAllLoans();
+    List<Loan> getAllLoans();
 }

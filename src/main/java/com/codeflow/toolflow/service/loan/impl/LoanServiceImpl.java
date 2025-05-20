@@ -266,10 +266,9 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public List<LoanResponse> getAllLoans() {
+    public List<Loan> getAllLoans() {
         return loanRepository.findAll()
                 .stream()
-                .map(loanMapper::toResponse)
                 .toList();
     }
 

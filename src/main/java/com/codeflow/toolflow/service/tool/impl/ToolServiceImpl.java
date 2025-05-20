@@ -164,6 +164,8 @@ public class ToolServiceImpl implements ToolService {
         Tool tool = toolRepository.findById(id)
                 .orElseThrow(() -> new ToolNotFoundException("Tool" + id + " not found"));
 
+        Integer originalAvailable = tool.getAvailable();
+
         if (request.getAvailable() != null) {
             tool.setAvailable(request.getAvailable());
         }
@@ -187,10 +189,12 @@ public class ToolServiceImpl implements ToolService {
 
         Tool updatedTool = toolRepository.save(tool);
 
-        if(updatedTool !=null && updatedTool.getMinimalRegistration() !=null && updatedTool.getAvailable() != null
-                && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
-            emailService.sendSimpleEmail(email, "Stock Alert",
-                    "The stock of tool " + updatedTool.getToolName() + " is below the minimum registration level.");
+        if(originalAvailable != null && originalAvailable > updatedTool.getMinimalRegistration()) {
+            if (updatedTool != null && updatedTool.getMinimalRegistration() != null && updatedTool.getAvailable() != null
+                    && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
+                emailService.sendSimpleEmail(email, "Stock Alert",
+                        "The stock of tool " + updatedTool.getToolName() + " is below the minimum registration level.");
+            }
         }
 
         return toolMapper.toResponse(updatedTool);

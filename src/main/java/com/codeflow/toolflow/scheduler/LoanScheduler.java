@@ -1,14 +1,13 @@
 package com.codeflow.toolflow.scheduler;
 
-import com.codeflow.toolflow.dto.loan.LoanResponse;
 import com.codeflow.toolflow.persistence.loan.entity.Loan;
-import com.codeflow.toolflow.service.loan.impl.LoanServiceImpl;
+import com.codeflow.toolflow.persistence.loan.entity.LoanTool;
+import com.codeflow.toolflow.persistence.loan.repository.LoanRepository;
 import com.codeflow.toolflow.util.enums.LoanStatus;
-import org.springdoc.core.converters.models.Pageable;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import com.codeflow.toolflow.service.email.EmailService;
@@ -19,57 +18,136 @@ public class LoanScheduler {
 
     private final EmailService emailService;
     public LoanService loanService;
-    public LoanScheduler(LoanService loanService) {
+    private final LoanRepository loanRepository;
+
+    public LoanScheduler(LoanService loanService, EmailService emailService, LoanRepository loanRepository) {
         this.loanService = loanService;
-        this.emailService = new EmailService();
+        this.emailService = emailService;
+        this.loanRepository = loanRepository;
     }
 
     // Variables simuladas
     private final String correoEncargado = "samuel.galindo@correounivalle.edu.co"; //Cambiar por el correo del encargado
 
-    @Scheduled(cron = "0 0 0  * * *") // Todos los días a las 00:00
+    @Scheduled(cron = "0 * * * * *")
     public void procesarVencimientos() {
-        LocalDate hoy = LocalDate.now();
+        LocalDate today = LocalDate.now();
 
-        List<LoanResponse> prestamos = loanService.getAllLoans();
+        List<Loan> loans = loanService.getAllLoans();
 
-        List<LoanResponse> prestamosActivos = prestamos.stream()
+        List<Loan> activeLoans = loans.stream()
                 .filter(loan -> loan.getLoanStatus() == LoanStatus.ON_LOAN)
                 .toList();
 
-        List<LoanResponse> prestamosAtrasados= prestamos.stream()
+        List<Loan> onDueLoans = loans.stream()
                 .filter(loan -> loan.getLoanStatus() == LoanStatus.OVERDUE)
                 .toList();
 
         //Logica correo primera vez
-        for (LoanResponse prestamo : prestamosActivos) {
-            String fechaVencimiento = prestamo.getDueDate();
-            LocalDate vencimiento = LocalDate.parse(fechaVencimiento);
+        for (Loan loan : activeLoans) {
+            LocalDate dueDate = loan.getDueDate();
+            if (dueDate != null && dueDate.isBefore(today)) {
+                List<LoanTool> loanTools = loan.getLoanTools();
 
-            if (vencimiento != null && vencimiento.isBefore(hoy)) {
-                System.out.println("Préstamo ID " + prestamo.getId() + " está vencido. Fecha vencimiento: " + fechaVencimiento);
-                // Aquí puedes hacer la lógica que quieras, ej. enviar alerta, cambiar estado, etc.
-                emailService.sendSimpleEmail(correoEncargado, "Prestamo Vencido",
-                        "El prestamo ha vencido el " + fechaVencimiento + ". Por favor, revisa el sistema.");
+                String head = "🔔 EL préstamo #" + loan.getId() + " acaba de vencer";
 
-                prestamo.setLoanStatus(LoanStatus.OVERDUE);
-            } else {
-                System.out.println("Préstamo ID " + prestamo.getId() + " está vigente.");
+                StringBuilder body = new StringBuilder();
+                body.append("📋 RESUMEN DE HERRAMIENTAS PRESTADAS\n");
+                body.append("========================================\n");
+
+                int counter = 1;
+                for (LoanTool loanTool : loanTools) {
+                    String toolName = loanTool.getTool().getToolName();
+                    int quantityRequested = loanTool.getRequested();
+                    int quantityLoan = loanTool.getLoaned();
+                    int quantityDelivered = loanTool.getDelivered();
+                    int quantityDamaged = loanTool.getDamaged();
+                    String responsible = "No asignado";
+
+                    if(loanTool.getResponsible() != null)
+                    {
+                        responsible = loanTool.getResponsible().getName() + " " + loanTool.getResponsible().getLastName();
+                    }
+
+                    body.append(String.format(
+                            "🔧 Herramienta #%d: %s\n" +
+                                    "   • Cantidad Pedida:     %d\n" +
+                                    "   • Cantidad Prestada:   %d\n" +
+                                    "   • Cantidad Entregada:  %d\n" +
+                                    "   • Cantidad Dañada:     %d\n" +
+                                    "   • Responsable:     %s\n",
+                            counter++, toolName,
+                            quantityRequested, quantityLoan, quantityDelivered,
+                            quantityDamaged, responsible
+                    ));
+
+                    body.append("--------------------------------------------------\n");
+                }
+
+                String reponsibleText = "Responsable del prestamo: " + loan.getResponsible().getName() + " " +
+                        loan.getResponsible().getLastName() + " Docente asignado: " + loan.getTeacher().getName() + " " + loan.getTeacher().getLastName();
+
+                emailService.sendSimpleEmail(correoEncargado, head,
+                        reponsibleText + "\n" + body + "\n" + loan.getDueDate());
+
+                loan.setLoanStatus(LoanStatus.OVERDUE);
+                loanRepository.save(loan);
             }
         }
 
-        for (LoanResponse prestamo : prestamosAtrasados) {
+        //Logica correo reincidente
+        for (Loan loan : onDueLoans) {
+            LocalDate dueDate = loan.getDueDate();
+            if (dueDate != null && dueDate.isBefore(today)) {
+                List<LoanTool> loanTools = loan.getLoanTools();
 
+                long dueDays = ChronoUnit.DAYS.between(dueDate, today);
+                String head = "🔔 EL préstamo #" + loan.getId() + " está vencido";
+
+                StringBuilder body = new StringBuilder();
+                body.append("📋 RESUMEN DE HERRAMIENTAS PRESTADAS\n");
+                body.append("========================================\n");
+
+                int counter = 1;
+                for (LoanTool loanTool : loanTools) {
+                    String toolName = loanTool.getTool().getToolName();
+                    int loanToolRequested = loanTool.getRequested();
+                    int loanToolLoaned = loanTool.getLoaned();
+                    int loanToolDelivered = loanTool.getDelivered();
+                    int loanToolDamaged = loanTool.getDamaged();
+                    String responsible = "No asignado";
+
+                    if(loanTool.getResponsible() != null)
+                    {
+                        responsible = loanTool.getResponsible().getName() + " " + loanTool.getResponsible().getLastName();
+                    }
+
+                    body.append(String.format(
+                            "🔧 Herramienta #%d: %s\n" +
+                                    "   • Cantidad Pedida:     %d\n" +
+                                    "   • Cantidad Prestada:   %d\n" +
+                                    "   • Cantidad Entregada:  %d\n" +
+                                    "   • Cantidad Dañada:     %d\n" +
+                                    "   • Responsable:     %s\n",
+                            counter++, toolName,
+                            loanToolRequested, loanToolLoaned, loanToolDelivered,
+                            loanToolDamaged, responsible
+                    ));
+
+                    body.append("--------------------------------------------------\n");
+                }
+
+                String reponsibleText = "Responsable del prestamo: " + loan.getResponsible().getName() + " " +
+                        loan.getResponsible().getLastName() + " Docente asignado: " + loan.getTeacher().getName() +
+                        " " +loan.getTeacher().getLastName();
+
+                emailService.sendSimpleEmail(correoEncargado, head,
+                        reponsibleText + "\n" + body + "\n" + "Fecha de vencimiento: " + loan.getDueDate() + "\n" +
+                                "Prestamo atrasado " + dueDays + " dias"
+                );
+            }
         }
-
-//        if (!hoy.isBefore(fechaVencimiento)) {
-//            System.out.println("📬 Enviando correo al encargado: " + correoEncargado);
-//            System.out.println("📅 Fecha vencida: " + fechaVencimiento);
-//            emailService.sendSimpleEmail(correoEncargado, "Prestamo Vencido",
-//                    "El prestamo ha vencido el " + fechaVencimiento + ". Por favor, revisa el sistema.");
-//        } else {
-//            System.out.println("✅ Aún no se ha vencido. Fecha de hoy: " + hoy);
-//        }
     }
-
 }
+
+
