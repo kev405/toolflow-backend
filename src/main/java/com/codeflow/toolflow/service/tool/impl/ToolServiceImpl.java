@@ -192,8 +192,8 @@ public class ToolServiceImpl implements ToolService {
         if(originalAvailable != null && originalAvailable > updatedTool.getMinimalRegistration()) {
             if (updatedTool != null && updatedTool.getMinimalRegistration() != null && updatedTool.getAvailable() != null
                     && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
-                emailService.sendSimpleEmail(email, "Stock Alert",
-                        "The stock of tool " + updatedTool.getToolName() + " is below the minimum registration level.");
+                emailService.sendSimpleEmail(email, "Alerta de Stock Minimo para la herramienta: " + updatedTool.getToolName(),
+                        "El stock minimo de la herramienta: " + updatedTool.getToolName() + " está por debajo del nivel de registro mínimo.");
             }
         }
 
