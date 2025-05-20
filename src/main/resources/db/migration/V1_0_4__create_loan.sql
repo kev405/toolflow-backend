@@ -1,8 +1,3 @@
--- Secuencia para la tabla 'loan'
-CREATE SEQUENCE IF NOT EXISTS loan_id_seq
-    START WITH 1
-    INCREMENT BY 1;
-
 -- Tabla 'loan'
 CREATE TABLE IF NOT EXISTS loan
 (
@@ -19,10 +14,10 @@ CREATE TABLE IF NOT EXISTS loan
     updated_by     BIGINT    NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (teacher_id) REFERENCES toolflow_user (id)
-);
+    );
 
--- Secuencia para la tabla 'loan_tool'
-CREATE SEQUENCE IF NOT EXISTS loan_tool_id_seq
+-- Secuencia para la tabla 'loan'
+CREATE SEQUENCE IF NOT EXISTS loan_id_seq
     START WITH 1
     INCREMENT BY 1;
 
@@ -42,4 +37,9 @@ CREATE TABLE IF NOT EXISTS loan_tool
     FOREIGN KEY (loan_id) REFERENCES loan (id) ON DELETE CASCADE,
     FOREIGN KEY (tool_id) REFERENCES tool (id),
     FOREIGN KEY (responsible_id) REFERENCES toolflow_user (id)
-);
+    );
+
+-- Secuencia para la tabla 'loan_tool'
+CREATE SEQUENCE IF NOT EXISTS loan_tool_id_seq
+    START WITH 1
+    INCREMENT BY 1;
