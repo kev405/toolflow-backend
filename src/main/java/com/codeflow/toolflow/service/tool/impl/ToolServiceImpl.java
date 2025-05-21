@@ -40,7 +40,7 @@ public class ToolServiceImpl implements ToolService {
     private final CategoryService categoryService;
     private final ToolMapper toolMapper;
 
-    @Value("${correo.encargado}")
+    @Value("${email.admin.from}")
     private String adminEmail;
 
     private EmailService emailService;
@@ -81,21 +81,15 @@ public class ToolServiceImpl implements ToolService {
     @Override
     public ToolResponse updateOneTool(Long id, ToolRequest request) {
         Tool existing = findOneById(id);
+        Integer previousAvailable = existing.getAvailable();
+
         Tool updated = mapRequestToEntity(request, existing);
         int totalQuantity = updated.getAvailable() - updated.getDamaged() + updated.getOnLoan();
         updated.setQuantity(totalQuantity);
 
         Tool saved = toolRepository.save(updated);
-        Integer originalAvailable = existing.getAvailable();
 
-        if(updated.getConsumable() && originalAvailable != null &&
-                updated.getMinimalRegistration() !=null && originalAvailable > updated.getMinimalRegistration()) {
-            if (updated != null && updated.getMinimalRegistration() != null && updated.getAvailable() != null
-                    && updated.getMinimalRegistration() > updated.getAvailable()) {
-                emailService.sendSimpleEmail(adminEmail, "Alerta de Stock Minimo para la herramienta: " + updated.getToolName(),
-                        "El stock minimo de la herramienta: " + updated.getToolName() + " está por debajo del nivel de registro mínimo. " + updated.getMinimalRegistration());
-            }
-        }
+        checkAndNotifyLowStock(saved, previousAvailable);
 
         return toolMapper.toResponse(saved);
     }
@@ -171,7 +165,7 @@ public class ToolServiceImpl implements ToolService {
         Tool tool = toolRepository.findById(id)
                 .orElseThrow(() -> new ToolNotFoundException("Tool" + id + " not found"));
 
-        Integer originalAvailable = tool.getAvailable();
+        Integer previousAvailable = tool.getAvailable();
 
         if (request.getAvailable() != null) {
             tool.setAvailable(request.getAvailable());
@@ -194,14 +188,7 @@ public class ToolServiceImpl implements ToolService {
 
         Tool updatedTool = toolRepository.save(tool);
 
-        if(updatedTool.getConsumable() && originalAvailable != null &&
-                updatedTool.getMinimalRegistration() !=null && originalAvailable > updatedTool.getMinimalRegistration()) {
-            if (updatedTool != null && updatedTool.getMinimalRegistration() != null && updatedTool.getAvailable() != null
-                    && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
-                emailService.sendSimpleEmail(adminEmail, "Alerta de Stock Minimo para la herramienta: " + updatedTool.getToolName(),
-                        "El stock minimo de la herramienta: " + updatedTool.getToolName() + " está por debajo del nivel de registro mínimo. " + updatedTool.getMinimalRegistration());
-            }
-        }
+        checkAndNotifyLowStock(updatedTool, previousAvailable);
 
         return toolMapper.toResponse(updatedTool);
     }
@@ -272,5 +259,55 @@ public class ToolServiceImpl implements ToolService {
             return userDetails.getId();
         }
         throw new IllegalStateException("No authenticated user found.");
+    }
+
+    /**
+     * Checks if the tool's available stock has dropped below the minimum registration level
+     * and sends an alert email to the admin if necessary.
+     *
+     * @param tool             the tool to check
+     * @param previousAvailable the previous available stock level
+     */
+    private void checkAndNotifyLowStock(Tool tool, Integer previousAvailable) {
+        if (tool.getConsumable()
+                && previousAvailable != null
+                && tool.getMinimalRegistration() != null
+                && previousAvailable > tool.getMinimalRegistration()
+                && tool.getAvailable() != null
+                && tool.getAvailable() < tool.getMinimalRegistration()) {
+
+            String subject = "⚠️ Alerta: Stock mínimo alcanzado - " + tool.getToolName();
+
+            String htmlBody = buildLowStockHtmlBody(tool);
+
+            emailService.sendHtmlEmail(adminEmail, subject, htmlBody);
+        }
+    }
+
+    private String buildLowStockHtmlBody(Tool tool) {
+        StringBuilder html = new StringBuilder();
+        html.append("<html><body style='font-family:Arial,sans-serif;'>");
+
+        html.append("<h2 style='color:#d9534f;'>⚠️ Alerta de stock mínimo</h2>");
+
+        html.append("<p>La herramienta <strong>\"").append(tool.getToolName())
+                .append("\"</strong> ha alcanzado un <strong>nivel crítico de stock</strong>.</p>");
+
+        html.append("<table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse;margin-top:10px;'>")
+                .append("<thead><tr style='background-color:#f2f2f2;'>")
+                .append("<th>Herramienta</th><th>Disponible</th><th>Stock mínimo</th>")
+                .append("</tr></thead>")
+                .append("<tbody><tr>")
+                .append("<td>").append(tool.getToolName()).append("</td>")
+                .append("<td>").append(tool.getAvailable()).append("</td>")
+                .append("<td>").append(tool.getMinimalRegistration()).append("</td>")
+                .append("</tr></tbody></table>");
+
+        html.append("<p style='margin-top:20px;'>📦 Te recomendamos considerar la reposición de esta herramienta lo antes posible para evitar inconvenientes operativos.</p>");
+
+        html.append("<br><p style='font-size:small;color:gray;'>Este es un mensaje automático de ToolFlow. No responder directamente a este correo.</p>");
+        html.append("</body></html>");
+
+        return html.toString();
     }
 }

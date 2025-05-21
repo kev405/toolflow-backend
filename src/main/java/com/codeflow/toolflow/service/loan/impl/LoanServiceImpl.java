@@ -124,12 +124,7 @@ public class LoanServiceImpl implements LoanService {
             String key = parts[0];
             String value = parts[1];
 
-            System.out.println("Parsing dueDate: [" + value + "]");
-            if (Objects.equals(key, "dueDate")) {
-                System.out.println("Parsing dueDate: [" + LocalDate.parse(value.trim()) + "]");
-            }
             if (value.isBlank()) continue;
-
 
             switch (key) {
                 case "teacherId" -> teacherId = Long.parseLong(value);
@@ -238,7 +233,7 @@ public class LoanServiceImpl implements LoanService {
                 loan.setLoanStatus(LoanStatus.ON_LOAN);
             }
 
-        } else if (loan.getLoanStatus() == LoanStatus.ON_LOAN) {
+        } else if (loan.getLoanStatus() == LoanStatus.ON_LOAN || loan.getLoanStatus() == LoanStatus.OVERDUE) {
             boolean anyMissing = loan.getLoanTools().stream()
                     .filter(tool -> !tool.getTool().getConsumable())
                     .anyMatch(tool -> {

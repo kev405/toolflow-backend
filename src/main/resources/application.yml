@@ -37,8 +37,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: toolflow.prueba@gmail.com
+    password: slbhnuqaokjunmvw
     properties:
       mail:
         smtp:
@@ -58,3 +58,7 @@ logging:
   level:
     com.zaxxer.hikari: DEBUG
     org.postgresql: DEBUG
+
+email:
+  admin:
+    from: main.toolflow@gmail.com
