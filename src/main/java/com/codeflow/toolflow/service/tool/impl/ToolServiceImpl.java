@@ -82,14 +82,19 @@ public class ToolServiceImpl implements ToolService {
         updated.setQuantity(totalQuantity);
 
         Tool saved = toolRepository.save(updated);
+        Integer originalAvailable = existing.getAvailable();
 
         String email = "samuel.galindo@correounivalle.edu.co";
 
-        if(updated.getMinimalRegistration() !=null && updated.getAvailable() != null
-                && updated.getMinimalRegistration() > updated.getAvailable()) {
-            emailService.sendSimpleEmail(email, "Stock Alert",
-                    "The stock of tool " + updated.getToolName() + " is below the minimum registration level.");
+        if(updated.getConsumable() && originalAvailable != null &&
+                updated.getMinimalRegistration() !=null && originalAvailable > updated.getMinimalRegistration()) {
+            if (updated != null && updated.getMinimalRegistration() != null && updated.getAvailable() != null
+                    && updated.getMinimalRegistration() > updated.getAvailable()) {
+                emailService.sendSimpleEmail(email, "Alerta de Stock Minimo para la herramienta: " + updated.getToolName(),
+                        "El stock minimo de la herramienta: " + updated.getToolName() + " está por debajo del nivel de registro mínimo. " + updated.getMinimalRegistration());
+            }
         }
+
         return toolMapper.toResponse(saved);
     }
 
@@ -189,11 +194,12 @@ public class ToolServiceImpl implements ToolService {
 
         Tool updatedTool = toolRepository.save(tool);
 
-        if(originalAvailable != null && originalAvailable > updatedTool.getMinimalRegistration()) {
+        if(updatedTool.getConsumable() && originalAvailable != null &&
+                updatedTool.getMinimalRegistration() !=null && originalAvailable > updatedTool.getMinimalRegistration()) {
             if (updatedTool != null && updatedTool.getMinimalRegistration() != null && updatedTool.getAvailable() != null
                     && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
                 emailService.sendSimpleEmail(email, "Alerta de Stock Minimo para la herramienta: " + updatedTool.getToolName(),
-                        "El stock minimo de la herramienta: " + updatedTool.getToolName() + " está por debajo del nivel de registro mínimo.");
+                        "El stock minimo de la herramienta: " + updatedTool.getToolName() + " está por debajo del nivel de registro mínimo. " + updatedTool.getMinimalRegistration());
             }
         }
 
