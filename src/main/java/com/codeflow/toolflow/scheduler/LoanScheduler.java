@@ -4,6 +4,7 @@ import com.codeflow.toolflow.persistence.loan.entity.Loan;
 import com.codeflow.toolflow.persistence.loan.entity.LoanTool;
 import com.codeflow.toolflow.persistence.loan.repository.LoanRepository;
 import com.codeflow.toolflow.util.enums.LoanStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
@@ -20,16 +21,16 @@ public class LoanScheduler {
     public LoanService loanService;
     private final LoanRepository loanRepository;
 
+    @Value("${correo.encargado}")
+    private String adminEmail;
+
     public LoanScheduler(LoanService loanService, EmailService emailService, LoanRepository loanRepository) {
         this.loanService = loanService;
         this.emailService = emailService;
         this.loanRepository = loanRepository;
     }
 
-    // Variables simuladas
-    private final String correoEncargado = "samuel.galindo@correounivalle.edu.co"; //Cambiar por el correo del encargado
-
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void procesarVencimientos() {
         LocalDate today = LocalDate.now();
 
@@ -87,8 +88,9 @@ public class LoanScheduler {
                 String reponsibleText = "Responsable del prestamo: " + loan.getResponsible().getName() + " " +
                         loan.getResponsible().getLastName() + "\n" + "Docente asignado: " + loan.getTeacher().getName() + " " + loan.getTeacher().getLastName();
 
-                emailService.sendSimpleEmail(correoEncargado, head,
-                        reponsibleText + "\n" + body + "\n" + loan.getDueDate());
+                emailService.sendSimpleEmail(adminEmail, head,
+                        reponsibleText + "\n" + body + "\n" + "Fecha de vencimiento: " + loan.getDueDate()
+                );
 
                 loan.setLoanStatus(LoanStatus.OVERDUE);
                 loanRepository.save(loan);
@@ -141,7 +143,7 @@ public class LoanScheduler {
                         loan.getResponsible().getLastName() + "\n" + " Docente asignado: " + loan.getTeacher().getName() +
                         " " +loan.getTeacher().getLastName();
 
-                emailService.sendSimpleEmail(correoEncargado, head,
+                emailService.sendSimpleEmail(adminEmail, head,
                         reponsibleText + "\n" + body + "\n" + "Fecha de vencimiento: " + loan.getDueDate() + "\n" +
                                 "Prestamo atrasado " + dueDays + " dias"
                 );

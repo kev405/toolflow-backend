@@ -14,6 +14,7 @@ import com.codeflow.toolflow.service.tool.ToolService;
 import com.codeflow.toolflow.util.exception.ToolNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,6 +39,9 @@ public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final CategoryService categoryService;
     private final ToolMapper toolMapper;
+
+    @Value("${correo.encargado}")
+    private String adminEmail;
 
     private EmailService emailService;
 
@@ -84,13 +88,11 @@ public class ToolServiceImpl implements ToolService {
         Tool saved = toolRepository.save(updated);
         Integer originalAvailable = existing.getAvailable();
 
-        String email = "samuel.galindo@correounivalle.edu.co";
-
         if(updated.getConsumable() && originalAvailable != null &&
                 updated.getMinimalRegistration() !=null && originalAvailable > updated.getMinimalRegistration()) {
             if (updated != null && updated.getMinimalRegistration() != null && updated.getAvailable() != null
                     && updated.getMinimalRegistration() > updated.getAvailable()) {
-                emailService.sendSimpleEmail(email, "Alerta de Stock Minimo para la herramienta: " + updated.getToolName(),
+                emailService.sendSimpleEmail(adminEmail, "Alerta de Stock Minimo para la herramienta: " + updated.getToolName(),
                         "El stock minimo de la herramienta: " + updated.getToolName() + " está por debajo del nivel de registro mínimo. " + updated.getMinimalRegistration());
             }
         }
@@ -190,15 +192,13 @@ public class ToolServiceImpl implements ToolService {
         tool.setUpdatedAt(LocalDateTime.now());
         tool.setUpdatedBy(getCurrentUserId());
 
-        String email = "samuel.galindo@correounivalle.edu.co";
-
         Tool updatedTool = toolRepository.save(tool);
 
         if(updatedTool.getConsumable() && originalAvailable != null &&
                 updatedTool.getMinimalRegistration() !=null && originalAvailable > updatedTool.getMinimalRegistration()) {
             if (updatedTool != null && updatedTool.getMinimalRegistration() != null && updatedTool.getAvailable() != null
                     && updatedTool.getMinimalRegistration() > updatedTool.getAvailable()) {
-                emailService.sendSimpleEmail(email, "Alerta de Stock Minimo para la herramienta: " + updatedTool.getToolName(),
+                emailService.sendSimpleEmail(adminEmail, "Alerta de Stock Minimo para la herramienta: " + updatedTool.getToolName(),
                         "El stock minimo de la herramienta: " + updatedTool.getToolName() + " está por debajo del nivel de registro mínimo. " + updatedTool.getMinimalRegistration());
             }
         }
