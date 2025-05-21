@@ -2,6 +2,7 @@ package com.codeflow.toolflow.service.loan;
 
 import com.codeflow.toolflow.dto.loan.LoanRequest;
 import com.codeflow.toolflow.dto.loan.LoanResponse;
+import com.codeflow.toolflow.persistence.loan.entity.Loan;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -45,4 +46,11 @@ public interface LoanService {
      * @param loanId the ID of the loan to delete
      */
     void deleteOne(Long loanId);
+
+    /**
+     * Retrieves a list of all loans in the system.
+     *
+     * @return a list of {@link LoanResponse} objects representing all loans
+     */
+    List<Loan> getAllLoans();
 }
