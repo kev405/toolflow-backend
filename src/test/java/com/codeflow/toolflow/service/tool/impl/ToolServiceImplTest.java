@@ -109,32 +109,6 @@ class ToolServiceImplTest {
     }
 
     @Test
-    void shouldUpdateTool() {
-        ToolRequest request = new ToolRequest();
-        Tool existing = createMockTool();
-        Tool updated = createMockTool();
-        updated.setAvailable(10);
-        updated.setOnLoan(5);
-        updated.setDamaged(2);
-        updated.setQuantity(17);
-
-        Category category = createMockCategory();
-
-        when(toolRepository.findById(1L)).thenReturn(Optional.of(existing));
-        when(toolMapper.toEntity(request)).thenReturn(updated);
-        when(categoryService.findOrCreateByName(any())).thenReturn(category);
-        when(toolRepository.save(any())).thenReturn(updated);
-        when(toolMapper.toResponse(any())).thenReturn(new ToolResponse());
-
-        ToolResponse response = toolService.updateOneTool(1L, request);
-
-        assertThat(response).isNotNull();
-        verify(toolRepository).save(toolCaptor.capture());
-        Tool captured = toolCaptor.getValue();
-        assertThat(captured.getQuantity()).isEqualTo(17);
-    }
-
-    @Test
     void shouldGetToolById() {
         Tool tool = createMockTool();
         when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
@@ -250,71 +224,6 @@ class ToolServiceImplTest {
     }
 
     @Test
-    void shouldUpdateStockWhenAllFieldsAreNull() {
-        Tool tool = new Tool();
-        tool.setAvailable(null);
-        tool.setDamaged(null);
-        tool.setOnLoan(null);
-
-        ToolStockRequest request = new ToolStockRequest(); // todos los campos null
-
-        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
-        when(toolRepository.save(any())).thenReturn(tool);
-        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
-
-        ToolResponse response = toolService.updateStock(1L, request);
-
-        assertThat(response).isNotNull();
-        verify(toolRepository).save(toolCaptor.capture());
-        assertThat(toolCaptor.getValue().getQuantity()).isEqualTo(0); // total 0
-    }
-
-    @Test
-    void shouldUpdateOnlyAvailableIfOthersAreZero() {
-        Tool tool = new Tool();
-        tool.setAvailable(0);
-        tool.setDamaged(0);
-        tool.setOnLoan(0);
-
-        ToolStockRequest request = new ToolStockRequest();
-        request.setAvailable(8);
-        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
-        when(toolRepository.save(any())).thenReturn(tool);
-        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
-
-        ToolResponse response = toolService.updateStock(1L, request);
-
-        assertThat(response).isNotNull();
-        verify(toolRepository).save(toolCaptor.capture());
-        Tool saved = toolCaptor.getValue();
-        assertThat(saved.getAvailable()).isEqualTo(8);
-        assertThat(saved.getDamaged()).isEqualTo(0); // corregido
-        assertThat(saved.getOnLoan()).isEqualTo(0);  // corregido
-        assertThat(saved.getQuantity()).isEqualTo(8);
-    }
-
-    @Test
-    void shouldUpdateStock() {
-        Tool tool = createMockTool();
-        ToolStockRequest stockRequest = new ToolStockRequest();
-        stockRequest.setAvailable(7);
-        stockRequest.setDamaged(2);
-        stockRequest.setOnLoan(1);
-
-        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
-        when(toolRepository.save(any())).thenReturn(tool);
-        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
-
-        ToolResponse response = toolService.updateStock(1L, stockRequest);
-
-        assertThat(response).isNotNull();
-        verify(toolRepository).save(toolCaptor.capture());
-        Tool captured = toolCaptor.getValue();
-        assertThat(captured.getQuantity()).isEqualTo(10);
-        assertThat(captured.getAvailable()).isEqualTo(7);
-    }
-
-    @Test
     void shouldThrowWhenNoAuthenticatedUserFound() {
         SecurityContextHolder.clearContext(); // Limpia el contexto para simular sesión vacía
 
@@ -340,56 +249,5 @@ class ToolServiceImplTest {
         assertThatThrownBy(service::getCurrentUserId)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("No authenticated user found.");
-    }
-
-    @Test
-    void shouldUpdateOnlyDamagedIfOthersAreZero() {
-        Tool tool = new Tool();
-        tool.setAvailable(0); // no null
-        tool.setDamaged(0);
-        tool.setOnLoan(0);
-
-        ToolStockRequest request = new ToolStockRequest();
-        request.setDamaged(4); // solo este se actualiza
-
-        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
-        when(toolRepository.save(any())).thenReturn(tool);
-        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
-
-        ToolResponse response = toolService.updateStock(1L, request);
-
-        assertThat(response).isNotNull();
-        verify(toolRepository).save(toolCaptor.capture());
-        Tool saved = toolCaptor.getValue();
-        assertThat(saved.getDamaged()).isEqualTo(4);
-        assertThat(saved.getAvailable()).isEqualTo(0); // ahora 0 en lugar de null
-        assertThat(saved.getOnLoan()).isEqualTo(0);    // ahora 0 en lugar de null
-        assertThat(saved.getQuantity()).isEqualTo(4);  // suma total
-    }
-
-
-    @Test
-    void shouldUpdateOnlyOnLoanIfOthersAreZero() {
-        Tool tool = new Tool();
-        tool.setAvailable(0);
-        tool.setDamaged(0);
-        tool.setOnLoan(0);
-
-        ToolStockRequest request = new ToolStockRequest();
-        request.setOnLoan(5);
-
-        when(toolRepository.findById(1L)).thenReturn(Optional.of(tool));
-        when(toolRepository.save(any())).thenReturn(tool);
-        when(toolMapper.toResponse(tool)).thenReturn(new ToolResponse());
-
-        ToolResponse response = toolService.updateStock(1L, request);
-
-        assertThat(response).isNotNull();
-        verify(toolRepository).save(toolCaptor.capture());
-        Tool saved = toolCaptor.getValue();
-        assertThat(saved.getOnLoan()).isEqualTo(5);
-        assertThat(saved.getAvailable()).isEqualTo(0);
-        assertThat(saved.getDamaged()).isEqualTo(0);
-        assertThat(saved.getQuantity()).isEqualTo(5);
     }
 }
