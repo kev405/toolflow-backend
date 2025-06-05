@@ -1,12 +1,14 @@
 package com.codeflow.toolflow.persistence.user.repository;
 
 import com.codeflow.toolflow.persistence.user.entity.User;
+import com.codeflow.toolflow.util.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,4 +37,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
      */
     @Query("SELECT u FROM User u JOIN u.userRoles ur WHERE ur.role = :role AND u.status = true")
     List<User> findUsersByRole(@Param("role") com.codeflow.toolflow.util.enums.Role role);
+
+    @Query("SELECT u FROM User u JOIN u.userRoles ur WHERE ur.role IN :roles AND u.status = true")
+    List<User> findUsersByRolesIn(@Param("roles") List<com.codeflow.toolflow.util.enums.Role> roles);
 }

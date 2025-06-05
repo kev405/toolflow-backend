@@ -231,6 +231,19 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Finds users by their roles.
+     *
+     * @param roles the list of roles to filter users by.
+     * @return a list of UserResponse objects for users with the specified roles.
+     */
+    @Override
+    public List<UserResponse> findByRoles(List<Role> roles) {
+        return userRepository.findUsersByRolesIn(roles).stream()
+                .map(userMapper::toResponse)
+                .toList();
+    }
+
+    /**
      * Retrieves a user by id or throws an exception if not found.
      *
      * @param id the user's id.

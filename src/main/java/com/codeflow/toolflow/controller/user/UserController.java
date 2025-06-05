@@ -6,6 +6,7 @@ import com.codeflow.toolflow.dto.user.OnUpdate;
 import com.codeflow.toolflow.dto.user.UserRequest;
 import com.codeflow.toolflow.dto.user.UserResponse;
 import com.codeflow.toolflow.service.user.UserService;
+import com.codeflow.toolflow.util.enums.Role;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -246,6 +247,47 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR', 'TEACHER')")
     public ResponseEntity<List<UserResponse>> getAllTeachers() {
         List<UserResponse> users = userService.getAllTeachers();
+        return ResponseEntity.ok(users);
+    }
+
+    @Operation(
+            summary = "Get all users by roles",
+            description = "Retrieves a list of users filtered by one or more roles (e.g., ADMINISTRATOR, TEACHER).",
+            parameters = {
+                    @Parameter(
+                            name = "roles",
+                            description = "List of roles to filter users by (comma-separated)",
+                            example = "ADMINISTRATOR,TEACHER",
+                            in = ParameterIn.QUERY,
+                            required = true
+                    )
+            },
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "List of users retrieved successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation = UserResponse.class))
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "Access denied - requires ADMINISTRATOR, TOOL_ADMINISTRATOR, or TEACHER role",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "Unexpected server error",
+                            content = @Content(schema = @Schema(implementation = ApiError.class))
+                    )
+            }
+    )
+    @GetMapping("/by-roles")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR', 'TEACHER')")
+    public ResponseEntity<List<UserResponse>> getUsersByRoles(
+            @RequestParam List<Role> roles) {
+        List<UserResponse> users = userService.findByRoles(roles);
         return ResponseEntity.ok(users);
     }
 }
