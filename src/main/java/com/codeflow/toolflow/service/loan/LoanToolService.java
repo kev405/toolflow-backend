@@ -16,5 +16,5 @@ public interface LoanToolService {
      * @param updatedTools the list of tool modifications requested
      * @param isAdmin      whether the current user has administrative privileges
      */
-    void updateToolsForLoan(Loan loan, List<LoanToolRequest> updatedTools, boolean isAdmin);
+    void updateToolsForLoan(Loan loan, List<LoanToolRequest> updatedTools, boolean isAdmin, boolean isAllowPartialEdit);
 }
