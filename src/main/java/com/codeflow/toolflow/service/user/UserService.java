@@ -6,6 +6,7 @@ import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.util.enums.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -81,4 +82,11 @@ public interface UserService {
      * @return a {@code List<UserResponse>} containing users and their roles.
      */
     List<UserResponse> findByRoles(List<Role> roles);
+
+    /**
+     * Uploads a list of students from a file.
+     *
+     * @param file the file containing student data to be uploaded.
+     */
+    void uploadStudents(MultipartFile file);
 }

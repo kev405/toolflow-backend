@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -289,5 +290,28 @@ public class UserController {
             @RequestParam List<Role> roles) {
         List<UserResponse> users = userService.findByRoles(roles);
         return ResponseEntity.ok(users);
+    }
+
+    @Operation(
+            summary = "Upload Students",
+            description = "Uploads a list of students from a file. The file should contain user details in a specific format.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "File containing student data",
+                    content = @Content(
+                            mediaType = "multipart/form-data",
+                            schema = @Schema(type = "string", format = "binary")
+                    )
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Students uploaded successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid file format or content", content = @Content(schema = @Schema(implementation = ApiError.class))),
+                    @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ApiError.class)))
+            }
+    )
+    @PostMapping("/upload-students")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<Void> uploadStudents(@RequestParam("file") MultipartFile file) {
+        userService.uploadStudents(file);
+        return ResponseEntity.ok().build();
     }
 }
