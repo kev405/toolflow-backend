@@ -87,4 +87,21 @@ public class VehicleResponse {
      */
     @NotNull
     private String location;
+
+    /**
+     * Summary information about the headquarter this vehicle belongs to.
+     */
+    private HeadquarterSummary headquarter;
+
+    /**
+     * Inner class to represent a minimal headquarter summary.
+     */
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class HeadquarterSummary {
+        private Long id;
+        private String name;
+    }
 }

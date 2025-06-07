@@ -5,6 +5,7 @@ import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
 import com.codeflow.toolflow.mapper.vehicle.VehicleMapper;
 import com.codeflow.toolflow.persistence.vehicle.entity.Vehicle;
 import com.codeflow.toolflow.persistence.vehicle.repository.VehicleRepository;
+import com.codeflow.toolflow.service.headquarter.HeadquarterService;
 import com.codeflow.toolflow.service.vehicle.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,15 +34,17 @@ public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleMapper vehicleMapper;
     private final VehicleRepository vehicleRepository;
+    private final HeadquarterService headquarterService;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public VehicleResponse registerOneVehicle(VehicleRequest VehicleRequest) {
-        Vehicle entity = vehicleMapper.toEntity(VehicleRequest);
-        Vehicle entitySaved = vehicleRepository.save(entity);
-        return vehicleMapper.toResponse(entitySaved);
+    public VehicleResponse registerOneVehicle(VehicleRequest vehicleRequest) {
+        Vehicle entity = vehicleMapper.toEntity(vehicleRequest);
+        entity.setHeadquarter(headquarterService.getMainHeadquarter());
+        Vehicle saved = vehicleRepository.save(entity);
+        return vehicleMapper.toResponse(saved);
     }
 
     /**
@@ -94,7 +97,7 @@ public class VehicleServiceImpl implements VehicleService {
      * {@inheritDoc}
      * <p>
      * The actual filtering logic is delegated to
-     * {@link VehicleRepository#queryPageable(String, String, String, String, String, String, String, Pageable)}.
+     * {@link VehicleRepository#queryPageable(String, String, String, String, String, String, String, Long, Pageable)}.
      * </p>
      */
     @Override
@@ -105,11 +108,32 @@ public class VehicleServiceImpl implements VehicleService {
                                          String numberChasis,
                                          String brand,
                                          String location,
+                                         Long headquarterId, // 🆕
                                          Pageable pageable) {
+        System.out.println("Fetching vehicles with filters: " +
+                "vehicleType=" + vehicleType +
+                ", plate=" + plate +
+                ", model=" + model +
+                ", color=" + color +
+                ", numberChasis=" + numberChasis +
+                ", brand=" + brand +
+                ", location=" + location +
+                ", headquarterId=" + headquarterId);
 
-        return vehicleRepository
-                .queryPageable(vehicleType, plate, model, color, numberChasis,
-                        brand, location, pageable)
-                .map(vehicleMapper::toResponse);
+        return vehicleRepository.queryPageable(
+                nullIfBlank(vehicleType),
+                nullIfBlank(plate),
+                nullIfBlank(model),
+                nullIfBlank(color),
+                nullIfBlank(numberChasis),
+                nullIfBlank(brand),
+                nullIfBlank(location),
+                headquarterId, // 🆕
+                pageable
+        ).map(vehicleMapper::toResponse);
+    }
+
+    private String nullIfBlank(String value) {
+        return (value == null || value.isBlank()) ? null : value;
     }
 }

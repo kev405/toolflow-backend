@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.persistence.vehicle.entity;
 
+import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -101,6 +102,18 @@ public class Vehicle {
      */
     @NotNull
     private String brand;
+
+    /**
+     * The headquarter or depot where the vehicle is assigned.
+     * <p>
+     * This field establishes a many-to-one relationship with the {@code Headquarter} entity.
+     * It cannot be {@code null} and must reference an existing headquarter.
+     * </p>
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "headquarter_id", referencedColumnName = "id", nullable = false)
+    @NotNull
+    private Headquarter headquarter;
 
     /**
      * The current physical or assigned location of the vehicle.
