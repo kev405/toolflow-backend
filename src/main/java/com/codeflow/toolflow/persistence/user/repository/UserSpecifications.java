@@ -1,7 +1,10 @@
 package com.codeflow.toolflow.persistence.user.repository;
 
 import com.codeflow.toolflow.persistence.user.entity.User;
+import com.codeflow.toolflow.util.enums.Role;
 import com.codeflow.toolflow.util.exception.InvalidSearchColumnException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Arrays;
@@ -38,6 +41,13 @@ public class UserSpecifications {
         }
         return (root, query, cb) ->
                 cb.like(cb.lower(root.get(column)), "%" + search.toLowerCase() + "%");
+    }
+
+    public static Specification<User> hasRole(String roleName) {
+        return (root, query, criteriaBuilder) -> {
+            Join<Object, Object> roleJoin = root.join("userRoles", JoinType.INNER);
+            return criteriaBuilder.equal(roleJoin.get("role"), Role.valueOf(roleName));
+        };
     }
 }
 

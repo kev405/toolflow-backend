@@ -15,6 +15,7 @@ import com.codeflow.toolflow.util.exception.InvalidRoleAssignmentException;
 import com.codeflow.toolflow.util.exception.UserAlreadyExistsException;
 import com.codeflow.toolflow.util.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -150,7 +152,9 @@ public class UserServiceImpl implements UserService {
     public Page<UserResponse> getPage(Pageable pageable, String search, String searchColumn) {
         Specification<User> spec = Specification.where(UserSpecifications.userIsActive());
 
-        if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
+        if (StringUtils.hasText(searchColumn) && searchColumn.equalsIgnoreCase("role")) {
+            spec = spec.and(UserSpecifications.hasRole(search));
+        } else if (StringUtils.hasText(search) && StringUtils.hasText(searchColumn)) {
             spec = spec.and(UserSpecifications.searchByColumn(searchColumn, search));
         }
 
@@ -243,6 +247,78 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    /**
+     * Uploads a list of students from an Excel file.
+     * Each row in the file is processed to create a new user with the provided details.
+     * If a user with the same document already exists, it skips that row.
+     *
+     * @param file the Excel file containing student data.
+     */
+    @Override
+    public void uploadStudents(MultipartFile file) {
+        try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+            Sheet sheet = workbook.getSheetAt(0);
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                String document = getCellValue(row, 6);
+                String name = getCellValue(row, 1);
+                String lastName = getCellValue(row, 3);
+                String email = getCellValue(row, 9);
+                String phone = getCellValue(row, 8);
+
+                if (document.isBlank() || name.isBlank()) {
+                    System.out.println("Fila " + i + " inválida: documento o nombre vacío.");
+                    continue;
+                }
+
+                if (userRepository.findByUsername(document).isPresent()) {
+                    System.out.println("Duplicado (documento): " + document);
+                    continue;
+                }
+
+                UserRequest request = new UserRequest();
+                request.setUsername(document);
+                request.setName(name);
+                request.setLastName(lastName);
+                request.setEmail(email);
+                request.setPhone(phone);
+                request.setPassword(UUID.randomUUID().toString());
+                request.setRepeatedPassword(request.getPassword());
+                request.setRoles(List.of(Role.STUDENT));
+
+                try {
+                    registerOneUser(request);
+                } catch (Exception e) {
+                    System.err.println("Error fila " + i + ": " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al procesar el archivo: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Retrieves the value of a cell in a row based on the specified index.
+     * Handles different cell types (String, Numeric, Boolean) and returns an empty string for null cells.
+     *
+     * @param row   the row containing the cell
+     * @param index the index of the cell to retrieve
+     * @return the trimmed string value of the cell, or an empty string if the cell is null
+     */
+    private String getCellValue(Row row, int index) {
+        Cell cell = row.getCell(index);
+        if (cell == null) return "";
+
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue().trim();
+            case NUMERIC -> String.valueOf((long) cell.getNumericCellValue()); // evita "12345.0"
+            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+            default -> "";
+        };
+    }
     /**
      * Retrieves a user by id or throws an exception if not found.
      *
