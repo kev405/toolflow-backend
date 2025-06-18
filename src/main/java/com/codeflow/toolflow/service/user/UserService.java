@@ -3,6 +3,7 @@ package com.codeflow.toolflow.service.user;
 import com.codeflow.toolflow.dto.user.UserRequest;
 import com.codeflow.toolflow.dto.user.UserResponse;
 import com.codeflow.toolflow.persistence.user.entity.User;
+import com.codeflow.toolflow.util.enums.Role;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -73,4 +74,11 @@ public interface UserService {
      * @return a {@code List<UserResponse>} containing all users.
      */
     List<UserResponse> getAllTeachers();
+
+    /**
+     * Retrieves a list of all users with their roles.
+     *
+     * @return a {@code List<UserResponse>} containing users and their roles.
+     */
+    List<UserResponse> findByRoles(List<Role> roles);
 }
