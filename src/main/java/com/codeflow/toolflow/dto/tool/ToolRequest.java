@@ -49,7 +49,7 @@ public class ToolRequest implements Serializable {
      *
      * @Min(value = 0, message = "Available cannot be negative") - The available quantity must be non-negative.
      */
-    @Min(value = 0, message = "Available cannot be negative")
+    @Min(value = 0, message = "Available cannot be negative", groups = {OnCreate.class})
     private Integer available = 0;
 
     /**
@@ -58,7 +58,7 @@ public class ToolRequest implements Serializable {
      *
      * @Min(value = 0, message = "Damaged cannot be negative") - The damaged quantity must be non-negative.
      */
-    @Min(value = 0, message = "Damaged cannot be negative")
+    @Min(value = 0, message = "Damaged cannot be negative", groups = {OnCreate.class})
     private Integer damaged = 0;
 
     /**
@@ -67,7 +67,7 @@ public class ToolRequest implements Serializable {
      *
      * @Min(value = 0, message = "On loan cannot be negative") - The on-loan quantity must be non-negative.
      */
-    @Min(value = 0, message = "On loan cannot be negative")
+    @Min(value = 0, message = "On loan cannot be negative", groups = {OnCreate.class})
     private Integer onLoan = 0;
 
     /**

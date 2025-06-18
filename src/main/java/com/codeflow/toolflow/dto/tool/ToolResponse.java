@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -93,4 +94,9 @@ public class ToolResponse implements Serializable {
      * The category to which this tool belongs.
      */
     private CategoryResponse category;
+
+    /**
+     * The inventory details of the tool, including stock levels.
+     */
+    private List<ToolInventoryResponse> inventories;
 }

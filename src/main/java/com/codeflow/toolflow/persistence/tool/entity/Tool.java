@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static jakarta.persistence.GenerationType.SEQUENCE;
@@ -138,4 +140,11 @@ public class Tool {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category", referencedColumnName = "id")
     private Category category;
+
+    /**
+     * The list of inventory records that associate this tool with different headquarters.
+     * This represents the distribution of the tool's stock across all locations.
+     */
+    @OneToMany(mappedBy = "tool", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<ToolInventory> inventories = new ArrayList<>();
 }
