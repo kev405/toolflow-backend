@@ -114,6 +114,12 @@ public class HeadquarterServiceImpl implements HeadquarterService {
                 .map(headquarterMapper::toResponse);
     }
 
+    @Override
+    public Headquarter getMainHeadquarter() {
+        return headquarterRepository.findByMainTrue()
+                .orElseThrow(() -> new EntityNotFoundException("Main headquarter not found"));
+    }
+
     private Long getCurrentUserId() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof UserLogin userDetails) {

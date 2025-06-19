@@ -52,10 +52,11 @@ public interface VehicleService {
      * @param numberChasis chassis / VIN number; may be {@code null}
      * @param brand        manufacturer brand; may be {@code null}
      * @param location     current location of the vehicle; may be {@code null}
+     * @param headquarterId ID of the headquarter where the vehicle is registered; may be {@code null}
      * @param pageable     pagination and sorting configuration
      * @return a {@link Page} of {@link VehicleResponse} instances that satisfy the filters
      */
     Page<VehicleResponse> getPage(String vehicleType, String plate, String model, String color,
-                                  String numberChasis, String brand, String location, Pageable pageable);
+                                  String numberChasis, String brand, String location, Long headquarterId, Pageable pageable);
 
 }

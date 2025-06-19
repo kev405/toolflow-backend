@@ -2,6 +2,7 @@ package com.codeflow.toolflow.service.headquarter;
 
 import com.codeflow.toolflow.dto.headquarter.HeadquarterRequest;
 import com.codeflow.toolflow.dto.headquarter.HeadquarterResponse;
+import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -58,4 +59,11 @@ public interface HeadquarterService {
      * @return a page of {@link HeadquarterResponse}
      */
     Page<HeadquarterResponse> getPage(Pageable pageable);
+
+    /**
+     * Retrieves the main headquarter, which is typically the primary office or location.
+     *
+     * @return the main {@link HeadquarterResponse}
+     */
+    Headquarter getMainHeadquarter();
 }

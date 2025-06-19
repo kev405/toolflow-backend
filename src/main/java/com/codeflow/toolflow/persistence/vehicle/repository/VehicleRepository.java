@@ -12,16 +12,27 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
 
-    @Query("SELECT e " + "FROM Vehicle e " + "WHERE (:vehicleType is null OR e.vehicleType = :vehicleType) "
-            + "AND (:plate is null OR e.plate = :plate) "
-            + "AND (:model is null OR e.model = :model) "
-            + "AND (:color is null OR e.color = :color) "
-            + "AND (:numberChasis is null OR e.numberChasis = :numberChasis) "
-            + "AND (:brand is null OR e.brand = :brand) "
-            + "AND (:location is null OR e.location = :location) ")
-    Page<Vehicle> queryPageable(@Param("vehicleType") String vehicleType, @Param("plate") String plate,
-                                @Param("model") String model, @Param("color") String color,
-                                @Param("numberChasis") String numberChasis, @Param("brand") String brand,
-                                @Param("location") String location, Pageable page);
+    @Query("""
+    SELECT v FROM Vehicle v
+    WHERE (LOWER(v.vehicleType) LIKE CONCAT('%', LOWER(:vehicleType), '%') OR :vehicleType IS NULL)
+      AND (LOWER(v.plate) LIKE CONCAT('%', LOWER(:plate), '%') OR :plate IS NULL)
+      AND (LOWER(v.model) LIKE CONCAT('%', LOWER(:model), '%') OR :model IS NULL)
+      AND (LOWER(v.color) LIKE CONCAT('%', LOWER(:color), '%') OR :color IS NULL)
+      AND (LOWER(v.numberChasis) LIKE CONCAT('%', LOWER(:numberChasis), '%') OR :numberChasis IS NULL)
+      AND (LOWER(v.brand) LIKE CONCAT('%', LOWER(:brand), '%') OR :brand IS NULL)
+      AND (LOWER(v.location) LIKE CONCAT('%', LOWER(:location), '%') OR :location IS NULL)
+      AND (:headquarterId IS NULL OR v.headquarter.id = :headquarterId)
+""")
+    Page<Vehicle> queryPageable(
+            @Param("vehicleType") String vehicleType,
+            @Param("plate") String plate,
+            @Param("model") String model,
+            @Param("color") String color,
+            @Param("numberChasis") String numberChasis,
+            @Param("brand") String brand,
+            @Param("location") String location,
+            @Param("headquarterId") Long headquarterId,
+            Pageable pageable
+    );
 
 }

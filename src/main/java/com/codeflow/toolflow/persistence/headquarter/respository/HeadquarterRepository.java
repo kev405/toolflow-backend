@@ -6,7 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface HeadquarterRepository extends JpaRepository<Headquarter, Long> {
     Page<Headquarter> findAllByStatusTrue(Pageable pageable);
+
+    Optional<Headquarter> findByMainTrue();
 }

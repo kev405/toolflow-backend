@@ -61,9 +61,10 @@ public class VehicleController {
             @Parameter(in = ParameterIn.QUERY, description = "Chassis / VIN number") @RequestParam(required = false) String numberChasis,
             @Parameter(in = ParameterIn.QUERY, description = "Manufacturer brand") @RequestParam(required = false) String brand,
             @Parameter(in = ParameterIn.QUERY, description = "Current location label or coordinates") @RequestParam(required = false) String location,
+            @Parameter(in = ParameterIn.QUERY, description = "ID of the headquarter where the vehicle is registered") @RequestParam(required = false) Long headquarterId,
             Pageable page) {
 
-        return vehicleService.getPage(vehicleType, plate, model, color, numberChasis, brand, location, page);
+        return vehicleService.getPage(vehicleType, plate, model, color, numberChasis, brand, location, headquarterId, page);
     }
 
     @PostMapping
