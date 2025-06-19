@@ -6,10 +6,12 @@ import com.codeflow.toolflow.dto.tool.ToolResponse;
 import com.codeflow.toolflow.dto.tool.ToolStockRequest;
 import com.codeflow.toolflow.mapper.tool.ToolMapper;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
+import com.codeflow.toolflow.persistence.tool.entity.ToolInventory;
 import com.codeflow.toolflow.persistence.tool.repository.ToolRepository;
 import com.codeflow.toolflow.persistence.tool.repository.ToolSpecifications;
 import com.codeflow.toolflow.service.email.EmailService;
 import com.codeflow.toolflow.service.category.CategoryService;
+import com.codeflow.toolflow.service.headquarter.HeadquarterService;
 import com.codeflow.toolflow.service.tool.ToolService;
 import com.codeflow.toolflow.util.exception.ToolNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +41,7 @@ public class ToolServiceImpl implements ToolService {
 
     private final ToolRepository toolRepository;
     private final CategoryService categoryService;
+    private final HeadquarterService headquarterService;
     private final ToolMapper toolMapper;
 
     @Value("${email.admin.from}")
@@ -60,12 +64,31 @@ public class ToolServiceImpl implements ToolService {
      */
     @Override
     public ToolResponse registerOneTool(ToolRequest request) {
-        Tool tool = mapRequestToEntity(request, new Tool());
+        Tool tool = mapCreateRequestToEntity(request);
         tool.setStatus(true);
-        tool.setQuantity(Optional.ofNullable(tool.getAvailable()).orElse(0));
-        tool.setDamaged(0);
+
+        tool.setAvailable(Optional.ofNullable(tool.getAvailable()).orElse(0));
         tool.setOnLoan(0);
+        tool.setDamaged(0);
+        tool.setQuantity(tool.getAvailable());
+
+        ToolInventory inventory = ToolInventory.builder()
+                .tool(tool)
+                .headquarter(headquarterService.getMainHeadquarter())
+                .quantity(tool.getQuantity())
+                .available(tool.getAvailable())
+                .damaged(tool.getDamaged())
+                .onLoan(tool.getOnLoan())
+                .createdAt(LocalDateTime.now())
+                .createdBy(getCurrentUserId())
+                .updatedAt(LocalDateTime.now())
+                .updatedBy(getCurrentUserId())
+                .build();
+
+        tool.getInventories().add(inventory);
+
         Tool saved = toolRepository.save(tool);
+
         return toolMapper.toResponse(saved);
     }
 
@@ -83,9 +106,7 @@ public class ToolServiceImpl implements ToolService {
         Tool existing = findOneById(id);
         Integer previousAvailable = existing.getAvailable();
 
-        Tool updated = mapRequestToEntity(request, existing);
-        int totalQuantity = updated.getAvailable() - updated.getDamaged() + updated.getOnLoan();
-        updated.setQuantity(totalQuantity);
+        Tool updated = mapUpdateRequestToEntity(request, existing);
 
         Tool saved = toolRepository.save(updated);
 
@@ -116,9 +137,6 @@ public class ToolServiceImpl implements ToolService {
     public void deleteOneTool(Long id) {
         Tool tool = findOneById(id);
         tool.setStatus(false);
-        tool.setAvailable(0);
-        tool.setDamaged(0);
-        tool.setOnLoan(0);
         tool.setUpdatedAt(LocalDateTime.now());
         tool.setUpdatedBy(getCurrentUserId());
         toolRepository.save(tool);
@@ -152,45 +170,119 @@ public class ToolServiceImpl implements ToolService {
     }
 
     /**
-     * Updates the stock of a tool identified by its ID.
-     * The method retrieves the existing record, applies updates from the {@link ToolStockRequest},
-     * and recalculates the total quantity.
+     * Updates the stock levels of a tool in the main headquarter.
+     * This method adjusts the available, damaged, and on-loan quantities
+     * in the tool's inventory for the main headquarter and checks for low stock conditions.
      *
-     * @param id      the ID of the tool to be updated
-     * @param request the object containing the updated stock data
+     * @param id      the ID of the tool to update
+     * @param request the request object containing stock updates
      * @return the updated {@link ToolResponse}
      */
     @Override
-    public ToolResponse updateStock(Long id, ToolStockRequest request) {
+    public ToolResponse updateStockMain(Long id, ToolStockRequest request) {
         Tool tool = toolRepository.findById(id)
-                .orElseThrow(() -> new ToolNotFoundException("Tool" + id + " not found"));
+                .orElseThrow(() -> new ToolNotFoundException("Tool " + id + " not found"));
 
-        Integer previousAvailable = tool.getAvailable();
+        int previousAvailable = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getAvailable()).orElse(0))
+                .sum();
 
-        if (request.getAvailable() != null) {
-            tool.setAvailable(request.getAvailable());
-        }
-        if (request.getDamaged() != null) {
-            tool.setDamaged(request.getDamaged());
-        }
-        if (request.getOnLoan() != null) {
-            tool.setOnLoan(request.getOnLoan());
-        }
+        ToolInventory inventory = tool.getInventories().stream()
+                .filter(inv -> inv.getHeadquarter().equals(headquarterService.getMainHeadquarter()))
+                .findFirst()
+                .orElseThrow(() -> new ToolNotFoundException("No inventory in main headquarter"));
 
-        int totalQuantity = (tool.getAvailable() != null ? tool.getAvailable() : 0) +
-                (tool.getDamaged() != null ? tool.getDamaged() : 0) +
-                (tool.getOnLoan() != null ? tool.getOnLoan() : 0);
+        if (request.getAvailable() != null) inventory.setAvailable(request.getAvailable());
+        if (request.getDamaged() != null) inventory.setDamaged(request.getDamaged());
+        if (request.getOnLoan() != null) inventory.setOnLoan(request.getOnLoan());
 
-        tool.setQuantity(totalQuantity);
+        inventory.setQuantity(
+                inventory.getAvailable() + inventory.getDamaged() + inventory.getOnLoan()
+        );
 
-        tool.setUpdatedAt(LocalDateTime.now());
-        tool.setUpdatedBy(getCurrentUserId());
+        inventory.setUpdatedAt(LocalDateTime.now());
+        inventory.setUpdatedBy(getCurrentUserId());
 
-        Tool updatedTool = toolRepository.save(tool);
+        int totalAvailable = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getAvailable()).orElse(0))
+                .sum();
 
-        checkAndNotifyLowStock(updatedTool, previousAvailable);
+        int totalOnLoan = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getOnLoan()).orElse(0))
+                .sum();
 
-        return toolMapper.toResponse(updatedTool);
+        int totalDamaged = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getDamaged()).orElse(0))
+                .sum();
+
+        tool.setAvailable(totalAvailable);
+        tool.setOnLoan(totalOnLoan);
+        tool.setDamaged(totalDamaged);
+        tool.setQuantity(totalAvailable + totalOnLoan + totalDamaged);
+
+        checkAndNotifyLowStock(tool, previousAvailable);
+
+        Tool savedTool = toolRepository.save(tool);
+
+        return toolMapper.toResponse(savedTool);
+    }
+
+    /**
+     * Updates the stock levels of a tool in a specific headquarter.
+     * This method adjusts the available, damaged, and on-loan quantities
+     * in the tool's inventory for the specified headquarter and checks for low stock conditions.
+     *
+     * @param toolId        the ID of the tool to update
+     * @param headquarterId the ID of the headquarter where the stock is being updated
+     * @param request       the request object containing stock updates
+     * @return the updated {@link ToolResponse}
+     */
+    @Override
+    public ToolResponse updateStockByHeadquarter(Long toolId, Long headquarterId, ToolStockRequest request) {
+        Tool tool = toolRepository.findById(toolId)
+                .orElseThrow(() -> new ToolNotFoundException("Tool " + toolId + " not found"));
+
+        int previousAvailable = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getAvailable()).orElse(0))
+                .sum();
+
+        ToolInventory inventory = tool.getInventories().stream()
+                .filter(inv -> inv.getHeadquarter().getId().equals(headquarterId))
+                .findFirst()
+                .orElseThrow(() -> new ToolNotFoundException("No inventory in headquarter ID " + headquarterId));
+
+        if (request.getAvailable() != null) inventory.setAvailable(request.getAvailable());
+        if (request.getDamaged() != null) inventory.setDamaged(request.getDamaged());
+        if (request.getOnLoan() != null) inventory.setOnLoan(request.getOnLoan());
+
+        inventory.setQuantity(
+                inventory.getAvailable() + inventory.getDamaged() + inventory.getOnLoan()
+        );
+
+        inventory.setUpdatedAt(LocalDateTime.now());
+        inventory.setUpdatedBy(getCurrentUserId());
+
+        int totalAvailable = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getAvailable()).orElse(0))
+                .sum();
+
+        int totalOnLoan = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getOnLoan()).orElse(0))
+                .sum();
+
+        int totalDamaged = tool.getInventories().stream()
+                .mapToInt(inv -> Optional.ofNullable(inv.getDamaged()).orElse(0))
+                .sum();
+
+        tool.setAvailable(totalAvailable);
+        tool.setOnLoan(totalOnLoan);
+        tool.setDamaged(totalDamaged);
+        tool.setQuantity(totalAvailable + totalOnLoan + totalDamaged);
+
+        checkAndNotifyLowStock(tool, previousAvailable);
+
+        Tool savedTool = toolRepository.save(tool);
+        return toolMapper.toResponse(savedTool);
     }
 
     /**
@@ -218,31 +310,57 @@ public class ToolServiceImpl implements ToolService {
     }
 
     /**
-     * Maps a {@link ToolRequest} DTO into a {@link Tool} entity.
-     * Performs category resolution and applies auditing metadata (createdBy, updatedBy).
+     * Maps a {@link ToolRequest} DTO into a new {@link Tool} entity.
+     * This method is used specifically for creating new tools, ensuring
+     * that all necessary fields are initialized correctly.
      *
-     * @param request      the request object with input data
-     * @param existingTool the existing tool (empty for new tool, filled for update)
+     * @param request the request object with input data
      * @return the mapped {@link Tool} entity ready to be persisted
      */
-    private Tool mapRequestToEntity(ToolRequest request, Tool existingTool) {
-        Tool tool = toolMapper.toEntity(request);
-        tool.setId(existingTool.getId());
+    private Tool mapCreateRequestToEntity(ToolRequest request) {
+        Long userId = getCurrentUserId();
+
+        Tool tool = toolMapper.toNewEntity(request);
+        tool.setCreatedAt(LocalDateTime.now());
+        tool.setCreatedBy(userId);
+        tool.setUpdatedAt(LocalDateTime.now());
+        tool.setUpdatedBy(userId);
+        tool.setStatus(true);
+
         tool.setCategory(categoryService.findOrCreateByName(request.getCategory()));
+        tool.setInventories(new ArrayList<>());
+
+        return tool;
+    }
+
+
+    /**
+     * Maps a {@link ToolRequest} DTO into an existing {@link Tool} entity.
+     * This method is used specifically for updating existing tools, ensuring
+     * that all necessary fields are preserved and updated correctly.
+     *
+     * @param request        the request object with input data
+     * @param existingTool   the existing tool entity to be updated
+     * @return the mapped {@link Tool} entity ready to be persisted
+     */
+    private Tool mapUpdateRequestToEntity(ToolRequest request, Tool existingTool) {
+        Tool tool = toolMapper.toExistingEntity(request);
+        tool.setId(existingTool.getId());
 
         Long userId = getCurrentUserId();
         tool.setUpdatedAt(LocalDateTime.now());
         tool.setUpdatedBy(userId);
 
-        if (tool.getId() == null) {
-            tool.setCreatedAt(LocalDateTime.now());
-            tool.setCreatedBy(userId);
-            tool.setStatus(true);
-        } else {
-            tool.setStatus(existingTool.getStatus() != null ? existingTool.getStatus() : true);
-            tool.setCreatedAt(existingTool.getCreatedAt());
-            tool.setCreatedBy(existingTool.getCreatedBy());
-        }
+        tool.setCategory(categoryService.findOrCreateByName(request.getCategory()));
+
+        tool.setCreatedAt(existingTool.getCreatedAt());
+        tool.setCreatedBy(existingTool.getCreatedBy());
+        tool.setStatus(existingTool.getStatus());
+        tool.setInventories(existingTool.getInventories());
+        tool.setQuantity(existingTool.getQuantity());
+        tool.setAvailable(existingTool.getAvailable());
+        tool.setOnLoan(existingTool.getOnLoan());
+        tool.setDamaged(existingTool.getDamaged());
 
         return tool;
     }
@@ -262,24 +380,25 @@ public class ToolServiceImpl implements ToolService {
     }
 
     /**
-     * Checks if the tool's available stock has dropped below the minimum registration level
-     * and sends an alert email to the admin if necessary.
+     * Checks if the tool's total available stock (across all headquarters)
+     * has dropped below the minimal threshold. If so, sends a warning email.
      *
-     * @param tool             the tool to check
-     * @param previousAvailable the previous available stock level
+     * @param tool the tool being evaluated
+     * @param previousAvailable the total available before the update
      */
     private void checkAndNotifyLowStock(Tool tool, Integer previousAvailable) {
-        if (tool.getConsumable()
-                && previousAvailable != null
-                && tool.getMinimalRegistration() != null
-                && previousAvailable > tool.getMinimalRegistration()
-                && tool.getAvailable() != null
-                && tool.getAvailable() < tool.getMinimalRegistration()) {
+        Integer minimal = tool.getMinimalRegistration();
+        Integer currentAvailable = tool.getAvailable();
 
+        if (Boolean.TRUE.equals(tool.getConsumable()) &&
+                previousAvailable != null &&
+                minimal != null &&
+                previousAvailable > minimal &&
+                currentAvailable != null &&
+                currentAvailable < minimal
+        ) {
             String subject = "⚠️ Alerta: Stock mínimo alcanzado - " + tool.getToolName();
-
             String htmlBody = buildLowStockHtmlBody(tool);
-
             emailService.sendHtmlEmail(adminEmail, subject, htmlBody);
         }
     }

@@ -5,9 +5,11 @@ import com.codeflow.toolflow.dto.tool.ToolStockRequest;
 import com.codeflow.toolflow.persistence.loan.entity.Loan;
 import com.codeflow.toolflow.persistence.loan.entity.LoanTool;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
+import com.codeflow.toolflow.persistence.tool.entity.ToolInventory;
 import com.codeflow.toolflow.persistence.tool.repository.ToolRepository;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
+import com.codeflow.toolflow.service.headquarter.impl.HeadquarterServiceImpl;
 import com.codeflow.toolflow.service.loan.LoanToolService;
 import com.codeflow.toolflow.service.tool.impl.ToolServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
@@ -27,6 +29,7 @@ public class LoanToolServiceImpl implements LoanToolService {
     private final ToolRepository toolRepository;
     private final UserRepository userRepository;
     private final ToolServiceImpl toolService;
+    private final HeadquarterServiceImpl headquarterService;
 
     @Override
     public void updateToolsForLoan(Loan loan, List<LoanToolRequest> updatedTools, boolean isAdmin, boolean isAllowPartialEdit) {
@@ -38,6 +41,11 @@ public class LoanToolServiceImpl implements LoanToolService {
         for (LoanToolRequest toolReq : updatedTools) {
             Tool toolEntity = toolRepository.findById(toolReq.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Tool not found: ID " + toolReq.getId()));
+
+            ToolInventory inventory = toolEntity.getInventories().stream()
+                    .filter(inv -> inv.getHeadquarter().equals(headquarterService.getMainHeadquarter()))
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException("Inventory not found for tool: " + toolEntity.getId()));
 
             LoanTool existing = currentTools.stream()
                     .filter(t -> t.getTool().getId().equals(toolReq.getId()))
@@ -60,9 +68,9 @@ public class LoanToolServiceImpl implements LoanToolService {
 
                 if (isAdmin && !toolEntity.getConsumable()) {
                     boolean changed = false;
-                    int updatedAvailable = toolEntity.getAvailable();
-                    int updatedOnLoan = toolEntity.getOnLoan();
-                    int updatedDamaged = toolEntity.getDamaged();
+                    int updatedAvailable = inventory.getAvailable();
+                    int updatedOnLoan = inventory.getOnLoan();
+                    int updatedDamaged = inventory.getDamaged();
 
                     if (newLoaned != oldLoaned) {
                         int deltaLoaned = newLoaned - oldLoaned;
@@ -86,7 +94,7 @@ public class LoanToolServiceImpl implements LoanToolService {
                     }
 
                     if (changed) {
-                        toolService.updateStock(toolEntity.getId(), ToolStockRequest.builder()
+                        toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
                                 .available(Math.max(updatedAvailable, 0))
                                 .onLoan(Math.max(updatedOnLoan, 0))
                                 .damaged(Math.max(updatedDamaged, 0))
@@ -115,7 +123,7 @@ public class LoanToolServiceImpl implements LoanToolService {
                     int updatedOnLoan = toolEntity.getOnLoan() + loaned - delivered;
                     int updatedDamaged = toolEntity.getDamaged() + damaged;
 
-                    toolService.updateStock(toolEntity.getId(), ToolStockRequest.builder()
+                    toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
                             .available(updatedAvailable)
                             .onLoan(updatedOnLoan)
                             .damaged(updatedDamaged)
@@ -147,16 +155,21 @@ public class LoanToolServiceImpl implements LoanToolService {
                 Tool tool = existingTool.getTool();
 
                 if (isAdmin && !tool.getConsumable()) {
+                    ToolInventory inventory = tool.getInventories().stream()
+                            .filter(inv -> inv.getHeadquarter().equals(headquarterService.getMainHeadquarter()))
+                            .findFirst()
+                            .orElseThrow(() -> new EntityNotFoundException("Inventory not found for tool: " + tool.getId()));
+
                     int loaned = existingTool.getLoaned();
                     int delivered = existingTool.getDelivered();
                     int damaged = existingTool.getDamaged();
 
                     int returnedOk = delivered - damaged;
-                    int updatedAvailable = tool.getAvailable() + Math.max(returnedOk, 0);
-                    int updatedOnLoan = tool.getOnLoan() - loaned;
-                    int updatedDamaged = tool.getDamaged() - damaged;
+                    int updatedAvailable = inventory.getAvailable() + Math.max(returnedOk, 0);
+                    int updatedOnLoan = inventory.getOnLoan() - loaned;
+                    int updatedDamaged = inventory.getDamaged() - damaged;
 
-                    toolService.updateStock(tool.getId(), ToolStockRequest.builder()
+                    toolService.updateStockMain(tool.getId(), ToolStockRequest.builder()
                             .available(Math.max(updatedAvailable, 0))
                             .onLoan(Math.max(updatedOnLoan, 0))
                             .damaged(Math.max(updatedDamaged, 0))

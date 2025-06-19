@@ -61,7 +61,9 @@ public interface ToolService {
      * @param toolStockRequest the object containing the updated stock data
      * @return the updated {@link ToolResponse}
      */
-    ToolResponse updateStock(Long id, ToolStockRequest toolStockRequest);
+    ToolResponse updateStockMain(Long id, ToolStockRequest toolStockRequest);
+
+    ToolResponse updateStockByHeadquarter(Long toolId, Long headquarterId, ToolStockRequest request);
 
     /**
      * Retrieves all tools in the system.

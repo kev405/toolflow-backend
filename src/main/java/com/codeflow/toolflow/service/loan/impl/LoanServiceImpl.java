@@ -69,7 +69,7 @@ public class LoanServiceImpl implements LoanService {
             int newAvailable = (tool.getAvailable() != null ? tool.getAvailable() : 0) - loaned;
             int newOnLoan = (tool.getOnLoan() != null ? tool.getOnLoan() : 0) + loaned;
 
-            toolService.updateStock(tool.getId(), ToolStockRequest.builder()
+            toolService.updateStockMain(tool.getId(), ToolStockRequest.builder()
                     .available(Math.max(newAvailable, 0))
                     .onLoan(newOnLoan)
                     .damaged(tool.getDamaged())

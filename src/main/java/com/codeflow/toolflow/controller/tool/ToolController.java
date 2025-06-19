@@ -1,9 +1,7 @@
 package com.codeflow.toolflow.controller.tool;
 
 import com.codeflow.toolflow.dto.ApiError;
-import com.codeflow.toolflow.dto.tool.ToolRequest;
-import com.codeflow.toolflow.dto.tool.ToolResponse;
-import com.codeflow.toolflow.dto.tool.ToolStockRequest;
+import com.codeflow.toolflow.dto.tool.*;
 import com.codeflow.toolflow.service.tool.ToolService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -23,6 +21,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,7 +50,7 @@ public class ToolController {
             @ApiResponse(responseCode = "201", description = "Tool successfully created", content = @Content(schema = @Schema(implementation = ToolResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
-    public ResponseEntity<ToolResponse> registerOne(@Valid @RequestBody ToolRequest toolRequest) {
+    public ResponseEntity<ToolResponse> registerOne(@Validated(OnCreate.class) @RequestBody ToolRequest toolRequest) {
         ToolResponse response = toolService.registerOneTool(toolRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -74,7 +73,7 @@ public class ToolController {
             @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content(schema = @Schema(implementation = ApiError.class))),
             @ApiResponse(responseCode = "404", description = "Tool not found", content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
-    public ResponseEntity<ToolResponse> updateOne(@PathVariable Long id, @Valid @RequestBody ToolRequest toolRequest) {
+    public ResponseEntity<ToolResponse> updateOne(@PathVariable Long id, @Validated(OnUpdate.class) @RequestBody ToolRequest toolRequest) {
         ToolResponse response = toolService.updateOneTool(id, toolRequest);
         return ResponseEntity.ok(response);
     }
@@ -172,7 +171,7 @@ public class ToolController {
             @PathVariable Long id,
             @Valid @RequestBody ToolStockRequest toolStockRequest) {
 
-        ToolResponse updatedTool = toolService.updateStock(id, toolStockRequest);
+        ToolResponse updatedTool = toolService.updateStockMain(id, toolStockRequest);
         return ResponseEntity.ok(updatedTool);
     }
 
@@ -205,5 +204,29 @@ public class ToolController {
     public ResponseEntity<List<ToolResponse>> getAllTools() {
         List<ToolResponse> tools = toolService.getAll();
         return ResponseEntity.ok(tools);
+    }
+
+    @PutMapping("/{toolId}/headquarters/{headquarterId}/stock")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR')")
+    @Operation(
+            summary = "Update Tool Stock by Headquarter",
+            description = "Updates stock-related fields (available, damaged, onLoan) for a specific headquarter.",
+            parameters = {
+                    @Parameter(name = "toolId", description = "Tool ID", required = true, example = "1"),
+                    @Parameter(name = "headquarterId", description = "Headquarter ID", required = true, example = "2")
+            }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Tool inventory updated successfully", content = @Content(schema = @Schema(implementation = ToolResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Tool or inventory not found", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    public ResponseEntity<ToolResponse> updateStockByHeadquarter(
+            @PathVariable Long toolId,
+            @PathVariable Long headquarterId,
+            @Valid @RequestBody ToolStockRequest toolStockRequest
+    ) {
+        ToolResponse updated = toolService.updateStockByHeadquarter(toolId, headquarterId, toolStockRequest);
+        return ResponseEntity.ok(updated);
     }
 }
