@@ -29,7 +29,7 @@ public class LoanToolServiceImpl implements LoanToolService {
     private final ToolServiceImpl toolService;
 
     @Override
-    public void updateToolsForLoan(Loan loan, List<LoanToolRequest> updatedTools, boolean isAdmin) {
+    public void updateToolsForLoan(Loan loan, List<LoanToolRequest> updatedTools, boolean isAdmin, boolean isAllowPartialEdit) {
         Map<Long, LoanToolRequest> incomingMap = updatedTools.stream()
                 .collect(Collectors.toMap(LoanToolRequest::getId, Function.identity()));
 

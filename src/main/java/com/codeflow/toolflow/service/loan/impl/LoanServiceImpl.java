@@ -27,8 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -115,6 +115,7 @@ public class LoanServiceImpl implements LoanService {
         Long responsibleId = null;
         LocalDate dueDate = null;
         LoanStatus loanStatus = null;
+        List<Long> toolIds = null;
 
         List<String> auxFilters = Optional.ofNullable(filters).orElse(List.of());
         for (String filter : auxFilters) {
@@ -131,6 +132,13 @@ public class LoanServiceImpl implements LoanService {
                 case "responsibleId" -> responsibleId = Long.parseLong(value);
                 case "dueDate" -> dueDate = LocalDate.parse(value.trim());
                 case "loanStatus" -> loanStatus = LoanStatus.valueOf(value);
+                case "toolIds" -> {
+                    toolIds = Stream.of(value.split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .map(Long::parseLong)
+                            .toList();
+                }
             }
         }
 
@@ -142,9 +150,13 @@ public class LoanServiceImpl implements LoanService {
         }
 
         if (dueDate != null) {
-            return loanRepository.findByFiltersWithDueDate(teacherId, responsibleId, dueDate, loanStatus, pageable).map(loanMapper::toResponse);
+            return loanRepository.findByFiltersWithDueDate(
+                    teacherId, responsibleId, dueDate, loanStatus, toolIds, pageable
+            ).map(loanMapper::toResponse);
         } else {
-            return loanRepository.findByFiltersWithoutDueDate(teacherId, responsibleId, loanStatus, pageable).map(loanMapper::toResponse);
+            return loanRepository.findByFiltersWithoutDueDate(
+                    teacherId, responsibleId, loanStatus, toolIds, pageable
+            ).map(loanMapper::toResponse);
         }
     }
 
@@ -156,17 +168,31 @@ public class LoanServiceImpl implements LoanService {
         Loan existingLoan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new EntityNotFoundException("Loan not found with ID: " + loanId));
 
-        existingLoan.setResponsible(
-                loanRequest.getResponsibleId() != null
-                        ? userRepository.findById(loanRequest.getResponsibleId())
-                        .orElseThrow(() -> new EntityNotFoundException("Responsible not found"))
-                        : null
-        );
+        LoanStatus currentStatus = existingLoan.getLoanStatus();
+
+        boolean isFinalized = currentStatus == LoanStatus.FINALIZED || currentStatus == LoanStatus.DAMAGED_FINALIZED;
+        boolean isAllowPartialEdit = currentStatus == LoanStatus.MISSING_FINALIZED || currentStatus == LoanStatus.MISSING_AND_DAMAGED_FINALIZED;
+        boolean isAdmin = getCurrentUserRoles().contains("ADMINISTRATOR") || getCurrentUserRoles().contains("TOOL_ADMINISTRATOR");
+
+        if (isFinalized) {
+            throw new IllegalStateException("No se puede modificar un préstamo finalizado.");
+        }
+
+        if (!isAllowPartialEdit) {
+            existingLoan.setResponsible(
+                    loanRequest.getResponsibleId() != null
+                            ? userRepository.findById(loanRequest.getResponsibleId())
+                            .orElseThrow(() -> new EntityNotFoundException("Responsible not found"))
+                            : null
+            );
+            existingLoan.setNotes(loanRequest.getNotes());
+        }
+
         existingLoan.setNotes(loanRequest.getNotes());
         existingLoan.setUpdatedAt(LocalDateTime.now());
         existingLoan.setUpdatedBy(currentUserId);
 
-        loanToolService.updateToolsForLoan(existingLoan, loanRequest.getTools(), getCurrentUserRoles().contains("ADMINISTRATOR") || getCurrentUserRoles().contains("TOOL_ADMINISTRATOR"));
+        loanToolService.updateToolsForLoan(existingLoan, loanRequest.getTools(), isAdmin, isAllowPartialEdit);
 
         updateLoanStatus(existingLoan);
 
@@ -214,38 +240,42 @@ public class LoanServiceImpl implements LoanService {
         boolean allConsumables = loan.getLoanTools().stream()
                 .allMatch(tool -> tool.getTool().getConsumable());
 
-        boolean allDelivered = loan.getLoanTools().stream()
-                .allMatch(tool ->
-                        tool.getTool().getConsumable() ||
-                                (tool.getDelivered() != null && tool.getDelivered() > 0)
-                );
-
         boolean allLoanedAssigned = loan.getLoanTools().stream()
                 .allMatch(tool -> tool.getLoaned() != null && tool.getLoaned() > 0);
 
+        boolean allDelivered = loan.getLoanTools().stream()
+                .allMatch(tool ->
+                        tool.getTool().getConsumable() ||
+                                Optional.ofNullable(tool.getDelivered()).orElse(0) + Optional.ofNullable(tool.getDamaged()).orElse(0) > 0
+                );
+
+
+        boolean anyMissing = loan.getLoanTools().stream()
+                .filter(tool -> !tool.getTool().getConsumable())
+                .anyMatch(tool -> {
+                    int loaned = Optional.ofNullable(tool.getLoaned()).orElse(0);
+                    int delivered = Optional.ofNullable(tool.getDelivered()).orElse(0);
+                    return delivered < loaned;
+                });
+
+        boolean anyDamaged = loan.getLoanTools().stream()
+                .filter(tool -> !tool.getTool().getConsumable())
+                .anyMatch(tool -> Optional.ofNullable(tool.getDamaged()).orElse(0) > 0);
+
+        LoanStatus current = loan.getLoanStatus();
+
         if (allConsumables && allLoanedAssigned) {
             loan.setLoanStatus(LoanStatus.FINALIZED);
+            loan.setReceivedDate(LocalDate.now());
             return;
         }
 
-        if (loan.getLoanStatus() == LoanStatus.ORDER) {
-            if (allLoanedAssigned) {
-                loan.setLoanStatus(LoanStatus.ON_LOAN);
-            }
+        if (current == LoanStatus.ORDER && allLoanedAssigned) {
+            loan.setLoanStatus(LoanStatus.ON_LOAN);
+            return;
+        }
 
-        } else if (loan.getLoanStatus() == LoanStatus.ON_LOAN || loan.getLoanStatus() == LoanStatus.OVERDUE) {
-            boolean anyMissing = loan.getLoanTools().stream()
-                    .filter(tool -> !tool.getTool().getConsumable())
-                    .anyMatch(tool -> {
-                        int requested = Optional.ofNullable(tool.getRequested()).orElse(0);
-                        int delivered = Optional.ofNullable(tool.getDelivered()).orElse(0);
-                        return delivered < requested;
-                    });
-
-            boolean anyDamaged = loan.getLoanTools().stream()
-                    .filter(tool -> !tool.getTool().getConsumable())
-                    .anyMatch(tool -> Optional.ofNullable(tool.getDamaged()).orElse(0) > 0);
-
+        if (current == LoanStatus.ON_LOAN || current == LoanStatus.OVERDUE) {
             if (allDelivered) {
                 if (anyMissing && anyDamaged) {
                     loan.setLoanStatus(LoanStatus.MISSING_AND_DAMAGED_FINALIZED);
@@ -256,6 +286,18 @@ public class LoanServiceImpl implements LoanService {
                 } else {
                     loan.setLoanStatus(LoanStatus.FINALIZED);
                 }
+                loan.setReceivedDate(LocalDate.now());
+            }
+            return;
+        }
+
+        if (current == LoanStatus.MISSING_FINALIZED || current == LoanStatus.MISSING_AND_DAMAGED_FINALIZED) {
+            if (!anyMissing && !anyDamaged && allDelivered) {
+                loan.setLoanStatus(LoanStatus.FINALIZED);
+                loan.setReceivedDate(LocalDate.now());
+            } else if (!anyMissing && anyDamaged && allDelivered) {
+                loan.setLoanStatus(LoanStatus.DAMAGED_FINALIZED);
+                loan.setReceivedDate(LocalDate.now());
             }
         }
     }

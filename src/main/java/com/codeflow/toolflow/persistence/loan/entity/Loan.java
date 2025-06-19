@@ -51,6 +51,8 @@ public class Loan {
     @NotNull
     private LocalDate dueDate;
 
+    private LocalDate receivedDate;
+
     @NotNull
     private Boolean status;
 

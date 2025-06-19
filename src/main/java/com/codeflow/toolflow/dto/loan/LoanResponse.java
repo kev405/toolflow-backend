@@ -40,6 +40,12 @@ public class LoanResponse {
     private String dueDate;
 
     /**
+     * The headquarter where the loan is managed.
+     * Contains details like name and address.
+     */
+    private String receivedDate;
+
+    /**
      * Additional notes or comments related to the loan.
      */
     private String notes;
