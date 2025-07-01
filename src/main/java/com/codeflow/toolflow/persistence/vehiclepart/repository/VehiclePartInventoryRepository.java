@@ -31,4 +31,11 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
      */
     List<VehiclePartInventory> findAllByVehiclePartId(Long vehiclePartId);
 
+    /**
+     * Finds all inventory records associated with a specific vehicle.
+     *
+     * @param vehicleId The ID of the vehicle.
+     * @return A list of all inventory records for that vehicle.
+     */
+    List<VehiclePartInventory> findAllByVehicle(Long vehicleId);
 }

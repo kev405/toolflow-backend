@@ -22,6 +22,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Default implementation of {@link VehiclePartService}.
+ * <p>
+ * This service orchestrates all business logic related to vehicle parts and their
+ * corresponding inventory records. It handles creation, updates, logical deletion,
+ * and stock management, ensuring data consistency between parts and their inventory.
+ * </p>
+ *
+ * <h3>Exception Strategy</h3>
+ * <p>
+ * Methods in this class throw {@link EntityNotFoundException} if a requested resource
+ * (like a VehiclePart, Vehicle, or Inventory record) is not found. It may also throw
+ * {@link IllegalStateException} for business rule violations, such as attempting to
+ * update stock for a deleted part.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class VehiclePartServiceImpl implements VehiclePartService {
@@ -34,6 +50,9 @@ public class VehiclePartServiceImpl implements VehiclePartService {
 
     private static final String VEHICLE_PART_NOT_FOUND = "VehiclePart not found with ID: ";
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public VehiclePartResponse createVehiclePartAndInventory(VehiclePartRequest request) {
@@ -63,10 +82,12 @@ public class VehiclePartServiceImpl implements VehiclePartService {
         return vehiclePartMapper.toResponse(savedVehiclePart);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public VehiclePartResponse updateVehiclePart(Long id, VehiclePartRequest request) {
-        // Find a non-deleted part to update
         VehiclePart existingPart = vehiclePartRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(VEHICLE_PART_NOT_FOUND + id));
 
@@ -85,13 +106,15 @@ public class VehiclePartServiceImpl implements VehiclePartService {
         return vehiclePartMapper.toResponse(updatedPart);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void updateStock(Long partId, Long headquarterId, UpdateStockRequest request) {
         VehiclePartInventory inventory = inventoryRepository.findByVehiclePartIdAndHeadquarterId(partId, headquarterId)
                 .orElseThrow(() -> new EntityNotFoundException("Inventory record not found for part " + partId + " at headquarter " + headquarterId));
 
-        // Prevent stock updates for logically deleted parts
         if(inventory.getVehiclePart().isDeleted()){
             throw new IllegalStateException("Cannot update stock for a deleted part with ID: " + partId);
         }
@@ -100,29 +123,34 @@ public class VehiclePartServiceImpl implements VehiclePartService {
         inventoryRepository.save(inventory);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public VehiclePartResponse getVehiclePartById(Long id) {
-        // Find a non-deleted part
         VehiclePart part = vehiclePartRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(VEHICLE_PART_NOT_FOUND + id));
         return vehiclePartMapper.toResponse(part);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public void deleteVehiclePart(Long id) {
-        // Find the part, even if it's already "deleted", to avoid errors
         VehiclePart partToDelete = vehiclePartRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(VEHICLE_PART_NOT_FOUND + id));
 
-        // Set the flag and save
         partToDelete.setDeleted(true);
         vehiclePartRepository.save(partToDelete);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Page<VehiclePartResponse> getPage(String name, Long vehicleId, Long headquarterId, Pageable pageable) {
-        // The repository method is already updated to filter out deleted items
         Page<VehiclePart> page = vehiclePartRepository.findWithFilters(
                 nullIfBlank(name),
                 vehicleId,
