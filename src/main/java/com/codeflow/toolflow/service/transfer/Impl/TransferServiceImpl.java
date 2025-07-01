@@ -232,7 +232,7 @@ public class TransferServiceImpl implements TransferService {
             vehicle.setHeadquarter(destination);
             vehicleRepository.save(vehicle);
 
-            List<VehiclePartInventory> associatedPartsInventory = vehiclePartInventoryRepository.findAllByVehiclePartId(vehicle.getId());
+            List<VehiclePartInventory> associatedPartsInventory = vehiclePartInventoryRepository.findAllByVehicle(vehicle.getId());
             for(VehiclePartInventory partInventory : associatedPartsInventory) {
                 partInventory.setHeadquarter(destination);
                 vehiclePartInventoryRepository.save(partInventory);
