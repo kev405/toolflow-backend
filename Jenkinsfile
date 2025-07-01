@@ -8,6 +8,11 @@ pipeline {
         DOCKER_IMAGE = "kev405/toolflow-api"
         SSH_USER = "root"
         SSH_HOST = "62.171.188.201"
+        SMTP_USER = credentials('godaddy-smtp-user')
+        SMTP_PASS = credentials('godaddy-smtp-password')
+        DB_URL = credentials('db-url')
+        DB_USER = credentials('db-user')
+        DB_PASS = credentials('db-password')
     }
 
     stages {
@@ -98,7 +103,15 @@ docker stop ${APP_NAME} || true
 docker rm ${APP_NAME} || true
 
 # Iniciar un nuevo contenedor con la imagen actualizada
-docker run -d --name ${APP_NAME} -p 9009:9009 ${DOCKER_IMAGE}:latest
+docker run -d \\
+    --name ${APP_NAME} \\
+    -p 9009:9009 \\
+    -e "SMTP_USERNAME=${SMTP_USER}" \\
+    -e "SMTP_PASSWORD=${SMTP_PASS}" \\
+    -e "DB_URL=${DB_URL}" \\
+    -e "DB_USER=${DB_USER}" \\
+    -e "DB_PASS=${DB_PASS}" \\
+    ${DOCKER_IMAGE}:latest
 EOF
 '''
                 }
