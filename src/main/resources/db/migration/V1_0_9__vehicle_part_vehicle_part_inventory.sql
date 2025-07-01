@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS vehicle_part_inventory (
     REFERENCES vehicle_part(id),
     CONSTRAINT fk_inventory_to_headquarter
     FOREIGN KEY (headquarter_id)
-    REFERENCES headquarter(id) -- Asumiendo que existe una tabla 'headquarter'
+    REFERENCES headquarter(id)
     );
 
 CREATE SEQUENCE IF NOT EXISTS part_inventory_id_seq START WITH 1 INCREMENT BY 1;

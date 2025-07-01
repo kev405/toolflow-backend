@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS transfer (
     updated_at                    TIMESTAMP WITH TIME ZONE,
     CONSTRAINT fk_transfer_to_user
     FOREIGN KEY (responsible_id)
-    REFERENCES toolflow_user(id), -- Asumiendo que la tabla de usuarios es 'app_user'
+    REFERENCES toolflow_user(id),
     CONSTRAINT fk_transfer_to_origin_hq
     FOREIGN KEY (origin_headquarter_id)
     REFERENCES headquarter(id),
