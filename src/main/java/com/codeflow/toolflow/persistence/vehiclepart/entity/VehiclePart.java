@@ -47,8 +47,16 @@ public class VehiclePart {
 
     /** Human-readable, system-wide unique name. */
     @NotNull
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
+
+    /**
+     * Indicates whether the part record was created from
+     * a vehicle association (true) or registered directly (false).
+     */
+    // This field now lives in VehiclePart to be part of the composite key
+    @Column(nullable = false)
+    private Boolean vehicleAssociated = false;
 
     /** Vehicle type when not linked to a specific vehicle. */
     private String vehicleType;
@@ -61,7 +69,8 @@ public class VehiclePart {
     private String model;
 
     /** Logical delete. */
-    private boolean isDeleted;
+    @Column(nullable = false)
+    private boolean isDeleted = false;
 
     /** Long description of the part. */
     private String description;

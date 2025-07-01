@@ -5,7 +5,7 @@ import com.codeflow.toolflow.dto.headquarter.HeadquarterRequest;
 import com.codeflow.toolflow.dto.headquarter.HeadquarterResponse;
 import com.codeflow.toolflow.mapper.headquarter.HeadquarterMapper;
 import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
-import com.codeflow.toolflow.persistence.headquarter.respository.HeadquarterRepository;
+import com.codeflow.toolflow.persistence.headquarter.repository.HeadquarterRepository;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
 import com.codeflow.toolflow.service.headquarter.HeadquarterService;

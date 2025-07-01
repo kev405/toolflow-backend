@@ -1,4 +1,4 @@
-package com.codeflow.toolflow.persistence.headquarter.respository;
+package com.codeflow.toolflow.persistence.headquarter.repository;
 
 import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import org.springframework.data.domain.Page;
