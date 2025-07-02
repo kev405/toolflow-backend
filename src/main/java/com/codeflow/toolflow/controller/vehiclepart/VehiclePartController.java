@@ -4,6 +4,7 @@ import com.codeflow.toolflow.dto.ApiError;
 import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
+import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
 import com.codeflow.toolflow.service.vehiclepart.VehiclePartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -79,7 +80,8 @@ public class VehiclePartController {
     })
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
-    public ResponseEntity<VehiclePartResponse> updatePart(@PathVariable Long id, @Valid @RequestBody VehiclePartRequest request) {
+    public ResponseEntity<VehiclePartResponse> updatePart(@PathVariable Long id, @Valid @RequestBody
+    VehiclePartUpdateRequest request) {
         return ResponseEntity.ok(vehiclePartService.updateVehiclePart(id, request));
     }
 

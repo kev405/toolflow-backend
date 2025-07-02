@@ -17,17 +17,32 @@ import java.util.Optional;
 public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> {
 
     /**
-     * Finds a non-deleted part by its ID.
+     * Finds a non-deleted part by its ID, explicitly fetching all related
+     * inventory and headquarter data in a single query to prevent lazy loading issues.
      * @param id The ID of the part.
-     * @return An Optional containing the part if found and not deleted.
+     * @return An Optional containing the fully initialized part if found and not deleted.
      */
-    Optional<VehiclePart> findByIdAndIsDeletedFalse(Long id);
+    @Query("SELECT vp FROM VehiclePart vp " +
+            "LEFT JOIN FETCH vp.inventories inv " +
+            "LEFT JOIN FETCH inv.headquarter " +
+            "WHERE vp.id = :id AND vp.isDeleted = false")
+    Optional<VehiclePart> findByIdAndIsDeletedFalse(@Param("id") Long id);
+
+    /**
+     * Checks if a non-deleted vehicle part with the given name and association status already exists.
+     * This is used to enforce the composite unique constraint before attempting to save a new entity.
+     *
+     * @param name The name of the vehicle part.
+     * @param vehicleAssociated The association status of the vehicle part.
+     * @return true if a matching part exists, false otherwise.
+     */
+    boolean existsByNameAndVehicleAssociatedAndIsDeletedFalse(String name, Boolean vehicleAssociated);
 
     /**
      * Finds a paginated list of non-deleted vehicle parts based on optional filter criteria.
      * This query joins with the inventory to filter by vehicle and headquarter.
      *
-     * @param name Optional filter for the part's name (case-insensitive, partial match).
+     * @param namePattern Optional filter for the part's name (case-insensitive, partial match).
      * @param vehicleId Optional filter for the associated vehicle's ID.
      * @param headquarterId Optional filter for the headquarter's ID where the part is stocked.
      * @param pageable Pagination and sorting information.
@@ -36,11 +51,11 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
     @Query("SELECT DISTINCT vp FROM VehiclePart vp " +
             "LEFT JOIN VehiclePartInventory vpi ON vpi.vehiclePart.id = vp.id " +
             "WHERE vp.isDeleted = false " +
-            "AND (:namePattern IS NULL OR LOWER(vp.name) LIKE :namePattern) " + // <-- CAMBIO CLAVE
+            "AND (:namePattern IS NULL OR LOWER(vp.name) LIKE :namePattern) " +
             "AND (:vehicleId IS NULL OR vpi.vehicle = :vehicleId) " +
             "AND (:headquarterId IS NULL OR vpi.headquarter.id = :headquarterId)")
     Page<VehiclePart> findWithFilters(
-            @Param("namePattern") String namePattern, // Renombrado para mayor claridad
+            @Param("namePattern") String namePattern,
             @Param("vehicleId") Long vehicleId,
             @Param("headquarterId") Long headquarterId,
             Pageable pageable);

@@ -1,8 +1,11 @@
 package com.codeflow.toolflow.mapper.vehiclepart;
 
+import java.util.List;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
+import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
 import com.codeflow.toolflow.persistence.vehiclepart.entity.VehiclePart;
+import com.codeflow.toolflow.persistence.vehiclepart.entity.VehiclePartInventory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -11,7 +14,11 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 /**
  * Mapper for converting between VehiclePart DTOs and entities.
  */
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(
+        componentModel = "spring",
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        uses = { VehiclePartInventoryMapper.class }
+)
 public interface VehiclePartMapper {
 
     /**
@@ -24,10 +31,12 @@ public interface VehiclePartMapper {
 
     /**
      * Converts a VehiclePart entity to a VehiclePartResponse DTO.
+     * The 'inventories' list is now mapped from the entity's inventory records.
      *
      * @param entity The source entity.
      * @return The resulting VehiclePartResponse DTO.
      */
+    @Mapping(source = "inventories", target = "inventories")
     VehiclePartResponse toResponse(VehiclePart entity);
 
     /**
@@ -37,6 +46,6 @@ public interface VehiclePartMapper {
      * @param dto The source DTO with update data.
      * @param entity The target entity to be updated.
      */
-    @Mapping(target = "id", ignore = true) // Ensure the ID is not overwritten
-    void updateEntityFromRequest(VehiclePartRequest dto, @MappingTarget VehiclePart entity);
+    @Mapping(target = "id", ignore = true)
+    void updateEntityFromRequest(VehiclePartUpdateRequest dto, @MappingTarget VehiclePart entity);
 }

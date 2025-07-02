@@ -43,6 +43,13 @@ public class VehiclePartRequest {
     private String brand;
 
     /**
+     * Indicates whether the part record was created from
+     * a vehicle association (true) or registered directly (false).
+     */
+    @NotNull(message = "vehicleAssociated is required")
+    private Boolean vehicleAssociated = false;
+
+    /**
      * The model identifier of the part. Optional.
      */
     private String model;

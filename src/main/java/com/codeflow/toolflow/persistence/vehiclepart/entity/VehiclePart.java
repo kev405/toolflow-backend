@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static jakarta.persistence.GenerationType.SEQUENCE;
@@ -21,7 +23,7 @@ import static jakarta.persistence.GenerationType.SEQUENCE;
 @Entity
 @Table(
         name = "vehicle_part",
-        uniqueConstraints = @UniqueConstraint(name = "uk_vehicle_part_name", columnNames = "name")
+        uniqueConstraints = @UniqueConstraint(name = "uk_part_name_associated", columnNames = {"name", "vehicleAssociated"})
 )
 @Data
 @Builder
@@ -64,6 +66,9 @@ public class VehiclePart {
     /** Manufacturer/brand of the part. */
     @NotNull
     private String brand;
+
+    @OneToMany(mappedBy = "vehiclePart", fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
+    private List<VehiclePartInventory> inventories = new ArrayList<>();
 
     /** Model code or reference. */
     private String model;

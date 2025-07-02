@@ -8,12 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-/**
- * Data Transfer Object for representing a VehiclePart in API responses.
- */
 @Data
 @Builder
 @AllArgsConstructor
@@ -29,9 +27,21 @@ public class VehiclePartResponse {
     private String model;
     private String description;
     private String notes;
+    private Boolean vehicleAssociated;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long createdBy;
     private Long updatedBy;
+    private List<InventoryDetail> inventories;
 
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class InventoryDetail {
+        private Long headquarterId;
+        private String headquarterName;
+        private Integer quantity;
+        private Long vehicleId; // <-- NUEVO CAMPO
+    }
 }

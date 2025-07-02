@@ -3,6 +3,7 @@ package com.codeflow.toolflow.service.vehiclepart.Impl;
 import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
+import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
 import com.codeflow.toolflow.mapper.vehiclepart.VehiclePartMapper;
 import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import com.codeflow.toolflow.persistence.vehicle.entity.Vehicle;
@@ -15,6 +16,7 @@ import com.codeflow.toolflow.service.headquarter.HeadquarterService;
 import com.codeflow.toolflow.service.vehiclepart.VehiclePartService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,6 +58,12 @@ public class VehiclePartServiceImpl implements VehiclePartService {
     @Override
     @Transactional
     public VehiclePartResponse createVehiclePartAndInventory(VehiclePartRequest request) {
+        if (vehiclePartRepository.existsByNameAndVehicleAssociatedAndIsDeletedFalse(request.getName(), request.getVehicleAssociated())) {
+            throw new DataIntegrityViolationException(
+                    "A vehicle part with the name '" + request.getName() + "' and association status '" + request.getVehicleAssociated() + "' already exists."
+            );
+        }
+
         VehiclePart vehiclePart = vehiclePartMapper.toEntity(request);
         VehiclePart savedVehiclePart = vehiclePartRepository.save(vehiclePart);
 
@@ -87,7 +95,7 @@ public class VehiclePartServiceImpl implements VehiclePartService {
      */
     @Override
     @Transactional
-    public VehiclePartResponse updateVehiclePart(Long id, VehiclePartRequest request) {
+    public VehiclePartResponse updateVehiclePart(Long id, VehiclePartUpdateRequest request) {
         VehiclePart existingPart = vehiclePartRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException(VEHICLE_PART_NOT_FOUND + id));
 

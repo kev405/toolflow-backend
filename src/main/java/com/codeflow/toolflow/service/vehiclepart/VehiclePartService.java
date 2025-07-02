@@ -3,6 +3,7 @@ package com.codeflow.toolflow.service.vehiclepart;
 import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
+import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,7 +27,7 @@ public interface VehiclePartService {
      * @param request DTO with the updated data.
      * @return the updated {@link VehiclePartResponse}.
      */
-    VehiclePartResponse updateVehiclePart(Long id, VehiclePartRequest request);
+    VehiclePartResponse updateVehiclePart(Long id, VehiclePartUpdateRequest request);
 
     /**
      * Updates the inventory stock for a specific part at a specific headquarter.
