@@ -161,6 +161,6 @@ public class VehiclePartServiceImpl implements VehiclePartService {
     }
 
     private String nullIfBlank(String value) {
-        return (value == null || value.isBlank()) ? null : value;
+        return (value == null || value.isBlank()) ? null : "%" + value.toLowerCase() + "%";
     }
 }
