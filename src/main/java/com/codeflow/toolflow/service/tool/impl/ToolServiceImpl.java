@@ -49,12 +49,6 @@ public class ToolServiceImpl implements ToolService {
     @Value("${email.admin.from}")
     private String adminEmail;
 
-    @Value("${email.admin.password}")
-    private String password;
-
-    @Value("${spring.mail.from}")
-    private String fromEmail;
-
     private EmailService emailService;
 
     @Autowired
@@ -407,7 +401,6 @@ public class ToolServiceImpl implements ToolService {
         ) {
             String subject = "⚠️ Alerta: Stock mínimo alcanzado - " + tool.getToolName();
             String htmlBody = buildLowStockHtmlBody(tool);
-            log.info("Enviando correo de: {}, asunto: {}, password: {}", fromEmail, subject, password);
             emailService.sendHtmlEmail(adminEmail, subject, htmlBody);
         }
     }
