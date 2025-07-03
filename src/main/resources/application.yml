@@ -45,6 +45,7 @@ spring:
           auth: true
           starttls:
             enable: true
+    from: ${SMTP_USERNAME}
 
 server:
   port: 9009
@@ -61,4 +62,4 @@ logging:
 
 email:
   admin:
-    from: ${SMTP_USERNAME}
+    from: main.toolflow@gmail.com
