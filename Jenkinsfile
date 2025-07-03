@@ -107,10 +107,10 @@ docker run -d \\
     --name ${APP_NAME} \\
     -p 9009:9009 \\
     -e "SMTP_USERNAME=${SMTP_USER}" \\
-    -e "SMTP_PASSWORD=${SMTP_PASS}" \\
+    -e 'SMTP_PASSWORD=${SMTP_PASS}' \\
     -e "DB_URL=${DB_URL}" \\
     -e "DB_USER=${DB_USER}" \\
-    -e "DB_PASS=${DB_PASS}" \\
+    -e 'DB_PASS=${DB_PASS}' \\
     ${DOCKER_IMAGE}:latest
 EOF
 '''
