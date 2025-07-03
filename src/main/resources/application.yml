@@ -62,4 +62,5 @@ logging:
 
 email:
   admin:
-    from: main.toolflow@gmail.com
+    from: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}

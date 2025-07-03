@@ -15,6 +15,7 @@ import com.codeflow.toolflow.service.headquarter.HeadquarterService;
 import com.codeflow.toolflow.service.tool.ToolService;
 import com.codeflow.toolflow.util.exception.ToolNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -37,6 +38,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class ToolServiceImpl implements ToolService {
 
     private final ToolRepository toolRepository;
@@ -46,6 +48,12 @@ public class ToolServiceImpl implements ToolService {
 
     @Value("${email.admin.from}")
     private String adminEmail;
+
+    @Value("${email.admin.password}")
+    private String password;
+
+    @Value("${spring.mail.from}")
+    private String fromEmail;
 
     private EmailService emailService;
 
@@ -399,6 +407,7 @@ public class ToolServiceImpl implements ToolService {
         ) {
             String subject = "⚠️ Alerta: Stock mínimo alcanzado - " + tool.getToolName();
             String htmlBody = buildLowStockHtmlBody(tool);
+            log.info("Enviando correo de: {}, asunto: {}, password: {}", fromEmail, subject, password);
             emailService.sendHtmlEmail(adminEmail, subject, htmlBody);
         }
     }
