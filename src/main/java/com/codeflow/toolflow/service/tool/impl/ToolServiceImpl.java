@@ -3,6 +3,7 @@ package com.codeflow.toolflow.service.tool.impl;
 import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.dto.tool.ToolRequest;
 import com.codeflow.toolflow.dto.tool.ToolResponse;
+import com.codeflow.toolflow.dto.tool.ToolSimpleResponse;
 import com.codeflow.toolflow.dto.tool.ToolStockRequest;
 import com.codeflow.toolflow.mapper.tool.ToolMapper;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
@@ -402,6 +403,37 @@ public class ToolServiceImpl implements ToolService {
             emailService.sendHtmlEmail(adminEmail, subject, htmlBody);
         }
     }
+
+    /**
+     * Retrieves a list of tools available in a specific headquarter.
+     * This method filters tools based on their active status and checks
+     * for inventory in the specified headquarter.
+     *
+     * @param headquarterId the ID of the headquarter to filter tools by
+     * @return a list of {@link ToolSimpleResponse} objects representing available tools
+     */
+    @Override
+    public List<ToolSimpleResponse> getToolsByHeadquarter(Long headquarterId) {
+        List<Tool> tools = toolRepository.findAll(Specification.where(ToolSpecifications.toolIsActive()));
+
+        List<ToolSimpleResponse> result = new ArrayList<>();
+
+        for (Tool tool : tools) {
+            Optional<ToolInventory> inventoryOpt = tool.getInventories().stream()
+                    .filter(inv -> inv.getHeadquarter().getId().equals(headquarterId))
+                    .findFirst();
+
+            if (inventoryOpt.isPresent()) {
+                ToolInventory inventory = inventoryOpt.get();
+
+                ToolSimpleResponse dto = toolMapper.toSimpleResponse(tool, inventory);
+                result.add(dto);
+            }
+        }
+
+        return result;
+    }
+
 
     private String buildLowStockHtmlBody(Tool tool) {
         StringBuilder html = new StringBuilder();

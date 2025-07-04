@@ -2,6 +2,7 @@ package com.codeflow.toolflow.service.tool;
 
 import com.codeflow.toolflow.dto.tool.ToolRequest;
 import com.codeflow.toolflow.dto.tool.ToolResponse;
+import com.codeflow.toolflow.dto.tool.ToolSimpleResponse;
 import com.codeflow.toolflow.dto.tool.ToolStockRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -71,4 +72,12 @@ public interface ToolService {
      * @return a list of {@link ToolResponse} objects representing each tool
      */
     List<ToolResponse> getAll();
+
+    /**
+     * Retrieves a list of tools associated with a specific headquarter.
+     *
+     * @param headquarterId the ID of the headquarter
+     * @return a list of {@link ToolSimpleResponse} objects representing the tools
+     */
+    List<ToolSimpleResponse> getToolsByHeadquarter(Long headquarterId);
 }
