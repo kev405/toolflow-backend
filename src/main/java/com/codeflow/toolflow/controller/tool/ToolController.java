@@ -229,4 +229,46 @@ public class ToolController {
         ToolResponse updated = toolService.updateStockByHeadquarter(toolId, headquarterId, toolStockRequest);
         return ResponseEntity.ok(updated);
     }
+
+    @GetMapping("/headquarters/{headquarterId}/tools")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR', 'TEACHER')")
+    @Operation(
+            summary = "Get tools by headquarter",
+            description = "Returns a simplified list of tools belonging to a specific headquarter, including only ID, name, and available quantity.",
+            parameters = {
+                    @Parameter(
+                            name = "headquarterId",
+                            in = ParameterIn.PATH,
+                            description = "Headquarter ID to filter tools",
+                            required = true,
+                            example = "1"
+                    )
+            }
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Tools retrieved successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = ToolSimpleResponse.class))
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Headquarter not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Access denied",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))
+            )
+    })
+    public ResponseEntity<List<ToolSimpleResponse>> getToolsByHeadquarter(
+            @PathVariable Long headquarterId) {
+        List<ToolSimpleResponse> tools = toolService.getToolsByHeadquarter(headquarterId);
+        return ResponseEntity.ok(tools);
+    }
+
 }

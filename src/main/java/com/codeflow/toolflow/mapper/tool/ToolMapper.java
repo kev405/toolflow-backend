@@ -2,7 +2,9 @@ package com.codeflow.toolflow.mapper.tool;
 
 import com.codeflow.toolflow.dto.tool.ToolRequest;
 import com.codeflow.toolflow.dto.tool.ToolResponse;
+import com.codeflow.toolflow.dto.tool.ToolSimpleResponse;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
+import com.codeflow.toolflow.persistence.tool.entity.ToolInventory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -16,7 +18,7 @@ public interface ToolMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "updatedBy", ignore = true)
     @Mapping(target = "category", ignore = true)
-    Tool toNewEntity(ToolRequest dto); // se usa en CREATE
+    Tool toNewEntity(ToolRequest dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -28,5 +30,13 @@ public interface ToolMapper {
     @Mapping(target = "available", ignore = true)
     @Mapping(target = "onLoan", ignore = true)
     @Mapping(target = "damaged", ignore = true)
-    Tool toExistingEntity(ToolRequest dto); // se usa en UPDATE
+    Tool toExistingEntity(ToolRequest dto);
+
+    /**
+     * Maps Tool and ToolInventory into ToolSimpleResponse.
+     */
+    @Mapping(target = "id", source = "tool.id")
+    @Mapping(target = "toolName", source = "tool.toolName")
+    @Mapping(target = "available", source = "inventory.available")
+    ToolSimpleResponse toSimpleResponse(Tool tool, ToolInventory inventory);
 }
