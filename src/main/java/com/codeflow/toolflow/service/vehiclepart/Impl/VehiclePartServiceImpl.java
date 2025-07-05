@@ -1,9 +1,6 @@
 package com.codeflow.toolflow.service.vehiclepart.Impl;
 
-import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
+import com.codeflow.toolflow.dto.vehiclepart.*;
 import com.codeflow.toolflow.mapper.vehiclepart.VehiclePartMapper;
 import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import com.codeflow.toolflow.persistence.vehicle.entity.Vehicle;
@@ -51,6 +48,7 @@ public class VehiclePartServiceImpl implements VehiclePartService {
     private final VehiclePartMapper vehiclePartMapper;
 
     private static final String VEHICLE_PART_NOT_FOUND = "VehiclePart not found with ID: ";
+    private static final String INVENTORY_NOT_FOUND = "Inventory record not found for part ";
 
     /**
      * {@inheritDoc}
@@ -112,6 +110,41 @@ public class VehiclePartServiceImpl implements VehiclePartService {
         }
 
         return vehiclePartMapper.toResponse(updatedPart);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void associateVehicle(Long partId, Long headquarterId, AssociateVehicleRequest request) {
+        // 1. Buscar el registro de inventario específico.
+        VehiclePartInventory inventory = inventoryRepository.findByVehiclePartIdAndHeadquarterId(partId, headquarterId)
+                .orElseThrow(() -> new EntityNotFoundException(INVENTORY_NOT_FOUND + partId + " at headquarter " + headquarterId));
+
+        Long vehicleId = request.getVehicleId();
+
+        // 2. Lógica para asociar.
+        if (vehicleId != null) {
+            Vehicle vehicle = vehicleRepository.findById(vehicleId)
+                    .orElseThrow(() -> new EntityNotFoundException("Vehicle not found with ID: " + vehicleId));
+
+            // Regla de negocio: El inventario debe estar en la misma sede que el vehículo.
+            if (!vehicle.getHeadquarter().getId().equals(headquarterId)) {
+                throw new IllegalStateException("Cannot associate part. The vehicle's headquarter (" + vehicle.getHeadquarter().getId()
+                        + ") does not match the inventory's headquarter (" + headquarterId + ").");
+            }
+
+            inventory.setVehicle(vehicle.getId());
+            inventory.setVehicleAssociated(true);
+        } else {
+            // 3. Lógica para desasociar.
+            inventory.setVehicle(null);
+            inventory.setVehicleAssociated(false);
+        }
+
+        // 4. Guardar los cambios en el inventario.
+        inventoryRepository.save(inventory);
     }
 
     /**

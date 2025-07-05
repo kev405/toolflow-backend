@@ -29,8 +29,5 @@ public class VehiclePartUpdateRequest {
     private String description;
     private String notes;
 
-    @NotNull(message = "vehicleAssociated flag is required")
-    private Boolean vehicleAssociated;
-
     private Integer vehicleId;
 }

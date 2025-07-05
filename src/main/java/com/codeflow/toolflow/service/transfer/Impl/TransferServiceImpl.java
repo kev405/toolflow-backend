@@ -137,6 +137,7 @@ public class TransferServiceImpl implements TransferService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public TransferResponse getTransferById(Long transferId) {
         Transfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new EntityNotFoundException("Transfer not found"));
@@ -147,6 +148,7 @@ public class TransferServiceImpl implements TransferService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<TransferResponse> getAllTransfers(Pageable pageable) {
         return transferRepository.findAll(pageable).map(transferMapper::toResponse);
     }
@@ -202,12 +204,11 @@ public class TransferServiceImpl implements TransferService {
 
         if (request.getVehicleParts() != null) {
             for (TransferRequest.PartItem item : request.getVehicleParts()) {
-                VehiclePart part = vehiclePartRepository.findById(item.getPartId()).orElseThrow(() -> new EntityNotFoundException("Part not found: " + item.getPartId()));
-                if (part.getVehicleAssociated()) {
-                    throw new IllegalStateException("Part " + item.getPartId() + " is associated with a vehicle and cannot be transferred individually.");
-                }
                 VehiclePartInventory originInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(item.getPartId(), request.getOriginHeadquarterId())
                         .orElseThrow(() -> new EntityNotFoundException("Part " + item.getPartId() + " not found in origin headquarter."));
+                if (originInventory.getVehicleAssociated()) {
+                    throw new IllegalStateException("Part " + item.getPartId() + " is associated with a vehicle and cannot be transferred individually.");
+                }
                 if (originInventory.getQuantity() < item.getQuantity()) {
                     throw new IllegalStateException("Insufficient stock for part " + item.getPartId() + " at origin headquarter.");
                 }

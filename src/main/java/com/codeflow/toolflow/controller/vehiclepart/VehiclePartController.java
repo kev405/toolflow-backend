@@ -1,10 +1,7 @@
 package com.codeflow.toolflow.controller.vehiclepart;
 
 import com.codeflow.toolflow.dto.ApiError;
-import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
+import com.codeflow.toolflow.dto.vehiclepart.*;
 import com.codeflow.toolflow.service.vehiclepart.VehiclePartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -95,6 +92,23 @@ public class VehiclePartController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public ResponseEntity<Void> deletePart(@PathVariable Long id) {
         vehiclePartService.deleteVehiclePart(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Associate or disassociate inventory with a vehicle",
+            description = "Updates an inventory record to link it to a specific vehicle or remove the link.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Association updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Part, inventory, or vehicle not found"),
+            @ApiResponse(responseCode = "400", description = "Business rule violation (e.g., headquarters mismatch)")
+    })
+    @PutMapping("/{partId}/headquarters/{headquarterId}/association")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<Void> associateVehicleWithPart(
+            @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,
+            @Parameter(description = "ID of the headquarter where inventory is located") @PathVariable Long headquarterId,
+            @Valid @RequestBody AssociateVehicleRequest request) {
+        vehiclePartService.associateVehicle(partId, headquarterId, request);
         return ResponseEntity.noContent().build();
     }
 

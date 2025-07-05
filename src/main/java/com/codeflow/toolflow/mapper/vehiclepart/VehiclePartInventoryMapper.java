@@ -20,6 +20,7 @@ public interface VehiclePartInventoryMapper {
      */
     @Mapping(source = "headquarter.id", target = "headquarterId")
     @Mapping(source = "headquarter.name", target = "headquarterName")
+    @Mapping(source = "vehicleAssociated", target = "vehicleAssociated")
     @Mapping(source = "vehicle", target = "vehicleId")
     @Mapping(source = "quantity", target = "quantity")
     VehiclePartResponse.InventoryDetail toInventoryDetail(VehiclePartInventory inventory);

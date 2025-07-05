@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS vehicle_part (
     id                    BIGINT          NOT NULL,
     name                  VARCHAR(255)    NOT NULL,
     vehicle_type          VARCHAR(255),
-    vehicle_associated    BOOLEAN,
     brand                 VARCHAR(255)    NOT NULL,
     model                 VARCHAR(255),
     description           VARCHAR(255),
@@ -17,7 +16,7 @@ CREATE TABLE IF NOT EXISTS vehicle_part (
     updated_by            BIGINT,
     updated_at            TIMESTAMP,
     PRIMARY KEY (id),
-    CONSTRAINT uk_part_name_associated UNIQUE (name, vehicle_associated)
+    CONSTRAINT uk_part_name UNIQUE (name)
     );
 
 CREATE SEQUENCE IF NOT EXISTS vehicle_part_id_seq START WITH 1 INCREMENT BY 1;

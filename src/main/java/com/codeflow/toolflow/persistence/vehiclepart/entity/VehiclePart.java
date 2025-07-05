@@ -23,7 +23,7 @@ import static jakarta.persistence.GenerationType.SEQUENCE;
 @Entity
 @Table(
         name = "vehicle_part",
-        uniqueConstraints = @UniqueConstraint(name = "uk_part_name_associated", columnNames = {"name", "vehicleAssociated"})
+        uniqueConstraints = @UniqueConstraint(name = "uk_part_name", columnNames = {"name"})
 )
 @Data
 @Builder
@@ -51,14 +51,6 @@ public class VehiclePart {
     @NotNull
     @Column(nullable = false)
     private String name;
-
-    /**
-     * Indicates whether the part record was created from
-     * a vehicle association (true) or registered directly (false).
-     */
-    // This field now lives in VehiclePart to be part of the composite key
-    @Column(nullable = false)
-    private Boolean vehicleAssociated = false;
 
     /** Vehicle type when not linked to a specific vehicle. */
     private String vehicleType;
