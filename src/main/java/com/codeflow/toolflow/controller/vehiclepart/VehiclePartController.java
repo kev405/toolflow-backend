@@ -95,19 +95,20 @@ public class VehiclePartController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Associate or disassociate inventory with a vehicle",
-            description = "Updates an inventory record to link it to a specific vehicle or remove the link.")
+    @Operation(summary = "Move vehicle part stock between associations",
+            description = "Moves a quantity of a part from a source association (generic or a vehicle) to a destination association within the same headquarter. Replaces the old association logic.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Association updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Part, inventory, or vehicle not found"),
-            @ApiResponse(responseCode = "400", description = "Business rule violation (e.g., headquarters mismatch)")
+            @ApiResponse(responseCode = "204", description = "Inventory moved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request (e.g., insufficient stock, same source/destination)"),
+            @ApiResponse(responseCode = "404", description = "Part, headquarter, or source inventory not found")
     })
-    @PutMapping("/{partId}/headquarters/{headquarterId}/association")
+    @PutMapping("/{partId}/headquarters/{headquarterId}/association") // Se mantiene el endpoint PUT
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
-    public ResponseEntity<Void> associateVehicleWithPart(
+    public ResponseEntity<Void> moveInventoryAssociation(
             @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,
             @Parameter(description = "ID of the headquarter where inventory is located") @PathVariable Long headquarterId,
-            @Valid @RequestBody AssociateVehicleRequest request) {
+            @Valid @RequestBody MoveInventoryRequest request) { // Se usa el nuevo DTO
+        // La llamada al servicio ahora es polimórfica y maneja la lógica de movimiento.
         vehiclePartService.associateVehicle(partId, headquarterId, request);
         return ResponseEntity.noContent().build();
     }

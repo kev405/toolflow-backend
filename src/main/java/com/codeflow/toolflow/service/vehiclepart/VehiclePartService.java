@@ -23,7 +23,7 @@ public interface VehiclePartService {
      * @param headquarterId The ID of the headquarter where the inventory is located.
      * @param request       The DTO containing the vehicle ID to associate with, or null to disassociate.
      */
-    void associateVehicle(Long partId, Long headquarterId, AssociateVehicleRequest request);
+    void associateVehicle(Long partId, Long headquarterId, MoveInventoryRequest request);
 
 
     /**
