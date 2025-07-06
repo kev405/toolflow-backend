@@ -2,6 +2,8 @@ package com.codeflow.toolflow.persistence.vehiclepart.repository;
 
 import com.codeflow.toolflow.persistence.vehiclepart.entity.VehiclePartInventory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -56,6 +58,19 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
      * @return A list of all inventory records for that vehicle.
      */
     List<VehiclePartInventory> findAllByVehicle(Long vehicleId);
+
+    /**
+     * Finds all inventory for parts that are not associated with a specific vehicle
+     * and have available stock at a given headquarter.
+     * @param headquarterId The ID of the headquarter.
+     * @return A list of vehicle part inventory records.
+     */
+    @Query("SELECT vpi FROM VehiclePartInventory vpi " +
+            "WHERE vpi.headquarter.id = :headquarterId " +
+            "AND vpi.quantity > 0 " +
+            "AND vpi.vehiclePart.isDeleted = false " +
+            "AND vpi.vehicleAssociated = false")
+    List<VehiclePartInventory> findAvailableNonAssociatedPartsByHeadquarter(@Param("headquarterId") Long headquarterId);
 
     boolean existsByVehiclePartIdAndVehicle(Long vehiclePartId, Long vehicleId);
 }

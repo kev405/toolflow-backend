@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.service.vehiclepart;
 
+import java.util.List;
 import com.codeflow.toolflow.dto.vehiclepart.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -70,4 +71,12 @@ public interface VehiclePartService {
      * @return A {@link Page} of {@link VehiclePartResponse} matching the criteria.
      */
     Page<VehiclePartResponse> getPage(String name, Long vehicleId, Long headquarterId, Pageable pageable);
+
+    /**
+     * Retrieves a list of transferable vehicle parts available at a specific headquarter.
+     *
+     * @param headquarterId The ID of the headquarter to check for available parts.
+     * @return A list of {@link TransferablePartVehicleResponse} containing the available parts.
+     */
+    List<TransferablePartVehicleResponse> getAvailableVehicleParts(Long headquarterId);
 }

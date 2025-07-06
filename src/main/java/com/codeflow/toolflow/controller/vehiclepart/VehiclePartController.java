@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,29 @@ public class VehiclePartController {
     public ResponseEntity<VehiclePartResponse> createPart(@Valid @RequestBody VehiclePartRequest request) {
         VehiclePartResponse response = vehiclePartService.createVehiclePartAndInventory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Get available vehicle parts for transfer",
+            description = "Returns a list of non-associated vehicle parts (generic stock) that have a quantity greater than zero at a specific origin headquarter. This is useful for populating a list of items that can be transferred.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of available parts retrieved successfully.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(type = "array", implementation = TransferablePartVehicleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bad Request - The required 'headquarterId' parameter is missing.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or invalid."),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role."),
+            @ApiResponse(responseCode = "404", description = "Not Found - The specified 'headquarterId' does not exist.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/available-for-transfer") // Se recomienda una URL más específica para evitar colisiones
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<List<TransferablePartVehicleResponse>> getAvailableVehicleParts(
+            @Parameter(description = "ID of the origin headquarter to check for available stock.", required = true)
+            @RequestParam Long headquarterId) {
+        return ResponseEntity.ok(vehiclePartService.getAvailableVehicleParts(headquarterId));
     }
 
     @Operation(summary = "Get a paginated list of vehicle parts",

@@ -1,5 +1,7 @@
 package com.codeflow.toolflow.service.vehicle;
 
+import java.util.List;
+import com.codeflow.toolflow.dto.vehicle.TransferableVehicleResponse;
 import com.codeflow.toolflow.dto.vehicle.VehicleRequest;
 import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
 import org.springframework.data.domain.Page;
@@ -58,5 +60,10 @@ public interface VehicleService {
      */
     Page<VehicleResponse> getPage(String vehicleType, String plate, String model, String color,
                                   String numberChasis, String brand, String location, Long headquarterId, Pageable pageable);
+
+    /**
+     * Retrieves all vehicles associated with a specific headquarter.
+     */
+    List<TransferableVehicleResponse> getAvailableVehicles(Long headquarterId);
 
 }

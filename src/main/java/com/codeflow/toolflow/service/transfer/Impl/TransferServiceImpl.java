@@ -28,7 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.List;
 
 /**
@@ -113,6 +113,50 @@ public class TransferServiceImpl implements TransferService {
         Transfer acceptedTransfer = transferRepository.save(transfer);
 
         return transferMapper.toResponse(acceptedTransfer);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TransferResponse> getAllTransfers(
+            Long originId,
+            Long destinationId,
+            String transferDate,
+            List<Long> toolIds,
+            List<Long> partIds,
+            List<Long> vehicleIds,
+            Pageable pageable) {
+
+        OffsetDateTime startDate = null;
+        OffsetDateTime endDate = null;
+
+        // Si se proporciona una fecha, creamos un rango para todo ese día.
+        if (transferDate != null && !transferDate.isBlank()) {
+            LocalDate date = LocalDate.parse(transferDate); // Asume formato "YYYY-MM-DD"
+            startDate = date.atStartOfDay().atOffset(ZoneOffset.UTC);
+            endDate = date.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        }
+
+        // Las listas vacías deben ser tratadas como nulas para que la consulta JPQL funcione correctamente.
+        List<Long> finalToolIds = (toolIds != null && !toolIds.isEmpty()) ? toolIds : null;
+        List<Long> finalPartIds = (partIds != null && !partIds.isEmpty()) ? partIds : null;
+        List<Long> finalVehicleIds = (vehicleIds != null && !vehicleIds.isEmpty()) ? vehicleIds : null;
+
+
+        Page<Transfer> transfers = transferRepository.findWithFilters(
+                originId,
+                destinationId,
+                startDate,
+                endDate,
+                finalToolIds,
+                finalPartIds,
+                finalVehicleIds,
+                pageable
+        );
+
+        return transfers.map(transferMapper::toResponse);
     }
 
     /**

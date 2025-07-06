@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link VehiclePartService}.
@@ -276,6 +277,21 @@ public class VehiclePartServiceImpl implements VehiclePartService {
                 pageable
         );
         return page.map(vehiclePartMapper::toResponse);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransferablePartVehicleResponse> getAvailableVehicleParts(Long headquarterId) {
+        return inventoryRepository.findAvailableNonAssociatedPartsByHeadquarter(headquarterId).stream()
+                .map(inventory -> TransferablePartVehicleResponse.builder()
+                        .id(inventory.getVehiclePart().getId())
+                        .name(inventory.getVehiclePart().getName())
+                        .availableQuantity(inventory.getQuantity())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private String nullIfBlank(String value) {

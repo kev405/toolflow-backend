@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.service.vehicle.Impl;
 
+import com.codeflow.toolflow.dto.vehicle.TransferableVehicleResponse;
 import com.codeflow.toolflow.dto.vehicle.VehicleRequest;
 import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
 import com.codeflow.toolflow.mapper.vehicle.VehicleMapper;
@@ -8,9 +9,12 @@ import com.codeflow.toolflow.persistence.vehicle.repository.VehicleRepository;
 import com.codeflow.toolflow.service.headquarter.HeadquarterService;
 import com.codeflow.toolflow.service.vehicle.VehicleService;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default implementation of {@link VehicleService}.
@@ -45,6 +49,22 @@ public class VehicleServiceImpl implements VehicleService {
         entity.setHeadquarter(headquarterService.getMainHeadquarter());
         Vehicle saved = vehicleRepository.save(entity);
         return vehicleMapper.toResponse(saved);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransferableVehicleResponse> getAvailableVehicles(Long headquarterId) {
+        return vehicleRepository.findAllByHeadquarterId(headquarterId).stream()
+                .map(vehicle -> TransferableVehicleResponse.builder()
+                        .id(vehicle.getId())
+                        .name(vehicle.getBrand() + " " + vehicle.getModel() + " (" + vehicle.getPlate() + ")")
+                        .availableQuantity(1) // A vehicle is a single unit
+                        .build())
+                .collect(Collectors.toList());
+
     }
 
     /**
