@@ -43,13 +43,13 @@ public interface TransferService {
      */
     TransferResponse getTransferById(Long transferId);
 
-    /**
-     * Retrieves a paginated list of all transfers.
-     *
-     * @param pageable Pagination and sorting information.
-     * @return A page of transfers.
-     */
-    Page<TransferResponse> getAllTransfers(Pageable pageable);
+//    /**
+//     * Retrieves a paginated list of all transfers.
+//     *
+//     * @param pageable Pagination and sorting information.
+//     * @return A page of transfers.
+//     */
+//    Page<TransferResponse> getAllTransfers(Pageable pageable);
 
     /**
      * Retrieves a paginated list of transfers based on a set of optional filters.

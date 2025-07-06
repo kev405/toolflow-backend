@@ -188,14 +188,14 @@ public class TransferServiceImpl implements TransferService {
         return transferMapper.toResponse(transfer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
-        return transferRepository.findAll(pageable).map(transferMapper::toResponse);
-    }
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
+//        return transferRepository.findAll(pageable).map(transferMapper::toResponse);
+//    }
 
     private void validateHeadquarters(Long originId, Long destId) {
         if (originId.equals(destId)) {
@@ -248,7 +248,8 @@ public class TransferServiceImpl implements TransferService {
 
         if (request.getVehicleParts() != null) {
             for (TransferRequest.PartItem item : request.getVehicleParts()) {
-                VehiclePartInventory originInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(item.getPartId(), request.getOriginHeadquarterId())
+                VehiclePartInventory originInventory = vehiclePartInventoryRepository.
+                        findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(item.getPartId(), request.getOriginHeadquarterId())
                         .orElseThrow(() -> new EntityNotFoundException("Part " + item.getPartId() + " not found in origin headquarter."));
                 if (originInventory.getVehicleAssociated()) {
                     throw new IllegalStateException("Part " + item.getPartId() + " is associated with a vehicle and cannot be transferred individually.");
@@ -315,11 +316,13 @@ public class TransferServiceImpl implements TransferService {
             int quantity = tvp.getQuantity();
             VehiclePart part = tvp.getVehiclePart();
 
-            VehiclePartInventory originInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(part.getId(), origin.getId()).orElseThrow();
+            VehiclePartInventory originInventory = vehiclePartInventoryRepository.
+                    findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(part.getId(), origin.getId()).orElseThrow();
             originInventory.setQuantity(originInventory.getQuantity() - quantity);
             vehiclePartInventoryRepository.save(originInventory);
 
-            VehiclePartInventory destInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(part.getId(), destination.getId())
+            VehiclePartInventory destInventory = vehiclePartInventoryRepository.
+                    findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(part.getId(), destination.getId())
                     .orElseGet(() -> createNewPartInventory(part, destination));
 
             destInventory.setQuantity(destInventory.getQuantity() + quantity);

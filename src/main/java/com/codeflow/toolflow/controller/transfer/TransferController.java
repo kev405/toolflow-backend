@@ -66,13 +66,13 @@ public class TransferController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Get a paginated list of transfers",
-            description = "Retrieves a list of all transfers, sorted and paginated.")
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
-    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
-        return transferService.getAllTransfers(pageable);
-    }
+//    @Operation(summary = "Get a paginated list of transfers",
+//            description = "Retrieves a list of all transfers, sorted and paginated.")
+//    @GetMapping
+//    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+//    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
+//        return transferService.getAllTransfers(pageable);
+//    }
 
     @Operation(summary = "Get a transfer by ID")
     @ApiResponses({

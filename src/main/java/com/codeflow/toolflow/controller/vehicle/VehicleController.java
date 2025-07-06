@@ -51,7 +51,7 @@ public class VehicleController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiError.class)))
     })
-    @GetMapping("/vehicles/available-for-transfer") // URL específica para claridad
+    @GetMapping("/available-for-transfer") // URL específica para claridad
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public ResponseEntity<List<TransferableVehicleResponse>> getAvailableVehicles(
             @Parameter(description = "ID of the origin headquarter to list vehicles from.", required = true)

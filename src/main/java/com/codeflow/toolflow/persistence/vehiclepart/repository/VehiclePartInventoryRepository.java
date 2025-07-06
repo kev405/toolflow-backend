@@ -72,5 +72,20 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
             "AND vpi.vehicleAssociated = false")
     List<VehiclePartInventory> findAvailableNonAssociatedPartsByHeadquarter(@Param("headquarterId") Long headquarterId);
 
+    /**
+     * Finds all inventory for parts that are not associated with a specific vehicle
+     * and have available stock at a given headquarter.
+     * @param headquarterId The ID of the headquarter.
+     * @param vehiclePartId The ID of the vehicle part.
+     * @return A list of vehicle part inventory records.
+     */
+    @Query("SELECT vpi FROM VehiclePartInventory vpi " +
+            "WHERE vpi.headquarter.id = :headquarterId " +
+            "AND vpi.vehiclePart.id = :vehiclePartId " +
+            "AND vpi.quantity > 0 " +
+            "AND vpi.vehiclePart.isDeleted = false " +
+            "AND vpi.vehicleAssociated = false")
+    Optional<VehiclePartInventory> findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(@Param("vehiclePartId") Long vehiclePartId, @Param("headquarterId") Long headquarterId);
+
     boolean existsByVehiclePartIdAndVehicle(Long vehiclePartId, Long vehicleId);
 }
