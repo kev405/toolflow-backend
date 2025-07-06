@@ -1,9 +1,7 @@
 package com.codeflow.toolflow.service.vehiclepart;
 
-import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
+import java.util.List;
+import com.codeflow.toolflow.dto.vehiclepart.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,6 +16,16 @@ public interface VehiclePartService {
      * @return a {@link VehiclePartResponse} of the newly created part.
      */
     VehiclePartResponse createVehiclePartAndInventory(VehiclePartRequest request);
+
+    /**
+     * Associates or disassociates a part's inventory record with a specific vehicle.
+     *
+     * @param partId        The ID of the vehicle part.
+     * @param headquarterId The ID of the headquarter where the inventory is located.
+     * @param request       The DTO containing the vehicle ID to associate with, or null to disassociate.
+     */
+    void associateVehicle(Long partId, Long headquarterId, MoveInventoryRequest request);
+
 
     /**
      * Updates the core details of an existing vehicle part.
@@ -63,4 +71,12 @@ public interface VehiclePartService {
      * @return A {@link Page} of {@link VehiclePartResponse} matching the criteria.
      */
     Page<VehiclePartResponse> getPage(String name, Long vehicleId, Long headquarterId, Pageable pageable);
+
+    /**
+     * Retrieves a list of transferable vehicle parts available at a specific headquarter.
+     *
+     * @param headquarterId The ID of the headquarter to check for available parts.
+     * @return A list of {@link TransferablePartVehicleResponse} containing the available parts.
+     */
+    List<TransferablePartVehicleResponse> getAvailableVehicleParts(Long headquarterId);
 }

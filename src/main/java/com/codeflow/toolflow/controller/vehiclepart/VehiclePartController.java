@@ -1,10 +1,7 @@
 package com.codeflow.toolflow.controller.vehiclepart;
 
 import com.codeflow.toolflow.dto.ApiError;
-import com.codeflow.toolflow.dto.vehiclepart.UpdateStockRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
-import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
+import com.codeflow.toolflow.dto.vehiclepart.*;
 import com.codeflow.toolflow.service.vehiclepart.VehiclePartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -43,6 +41,29 @@ public class VehiclePartController {
     public ResponseEntity<VehiclePartResponse> createPart(@Valid @RequestBody VehiclePartRequest request) {
         VehiclePartResponse response = vehiclePartService.createVehiclePartAndInventory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Get available vehicle parts for transfer",
+            description = "Returns a list of non-associated vehicle parts (generic stock) that have a quantity greater than zero at a specific origin headquarter. This is useful for populating a list of items that can be transferred.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of available parts retrieved successfully.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(type = "array", implementation = TransferablePartVehicleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bad Request - The required 'headquarterId' parameter is missing.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or invalid."),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role."),
+            @ApiResponse(responseCode = "404", description = "Not Found - The specified 'headquarterId' does not exist.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/available-for-transfer") // Se recomienda una URL más específica para evitar colisiones
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<List<TransferablePartVehicleResponse>> getAvailableVehicleParts(
+            @Parameter(description = "ID of the origin headquarter to check for available stock.", required = true)
+            @RequestParam Long headquarterId) {
+        return ResponseEntity.ok(vehiclePartService.getAvailableVehicleParts(headquarterId));
     }
 
     @Operation(summary = "Get a paginated list of vehicle parts",
@@ -95,6 +116,24 @@ public class VehiclePartController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public ResponseEntity<Void> deletePart(@PathVariable Long id) {
         vehiclePartService.deleteVehiclePart(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Move vehicle part stock between associations",
+            description = "Moves a quantity of a part from a source association (generic or a vehicle) to a destination association within the same headquarter. Replaces the old association logic.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Inventory moved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request (e.g., insufficient stock, same source/destination)"),
+            @ApiResponse(responseCode = "404", description = "Part, headquarter, or source inventory not found")
+    })
+    @PutMapping("/{partId}/headquarters/{headquarterId}/association") // Se mantiene el endpoint PUT
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<Void> moveInventoryAssociation(
+            @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,
+            @Parameter(description = "ID of the headquarter where inventory is located") @PathVariable Long headquarterId,
+            @Valid @RequestBody MoveInventoryRequest request) { // Se usa el nuevo DTO
+        // La llamada al servicio ahora es polimórfica y maneja la lógica de movimiento.
+        vehiclePartService.associateVehicle(partId, headquarterId, request);
         return ResponseEntity.noContent().build();
     }
 

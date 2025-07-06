@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,25 @@ public class TransferController {
 
     private final TransferService transferService;
 
+    @Operation(summary = "Get a paginated list of transfers with dynamic filters",
+            description = "Retrieves transfers based on a combination of optional filters. Multi-select filters accept comma-separated values.")
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<Page<TransferResponse>> getAllTransfers(
+            @Parameter(description = "Filter by origin headquarter ID") @RequestParam(required = false) Long originId,
+            @Parameter(description = "Filter by destination headquarter ID") @RequestParam(required = false) Long destinationId,
+            @Parameter(description = "Filter by a specific transfer date (format: YYYY-MM-DD)") @RequestParam(required = false) String transferDate,
+            @Parameter(description = "Filter by tool IDs (comma-separated)") @RequestParam(required = false) List<Long> toolIds,
+            @Parameter(description = "Filter by vehicle part IDs (comma-separated)") @RequestParam(required = false) List<Long> partIds,
+            @Parameter(description = "Filter by vehicle IDs (comma-separated)") @RequestParam(required = false) List<Long> vehicleIds,
+            Pageable pageable) {
+
+        Page<TransferResponse> transfers = transferService.getAllTransfers(
+                originId, destinationId, transferDate, toolIds, partIds, vehicleIds, pageable
+        );
+        return ResponseEntity.ok(transfers);
+    }
+
     @Operation(summary = "Create a new transfer request",
             description = "Registers a new transfer with a 'PENDING' status. The request is validated for stock availability and business rules before creation.")
     @ApiResponses({
@@ -46,13 +66,13 @@ public class TransferController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Get a paginated list of transfers",
-            description = "Retrieves a list of all transfers, sorted and paginated.")
-    @GetMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
-    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
-        return transferService.getAllTransfers(pageable);
-    }
+//    @Operation(summary = "Get a paginated list of transfers",
+//            description = "Retrieves a list of all transfers, sorted and paginated.")
+//    @GetMapping
+//    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+//    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
+//        return transferService.getAllTransfers(pageable);
+//    }
 
     @Operation(summary = "Get a transfer by ID")
     @ApiResponses({

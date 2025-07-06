@@ -28,7 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.List;
 
 /**
@@ -119,6 +119,50 @@ public class TransferServiceImpl implements TransferService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
+    public Page<TransferResponse> getAllTransfers(
+            Long originId,
+            Long destinationId,
+            String transferDate,
+            List<Long> toolIds,
+            List<Long> partIds,
+            List<Long> vehicleIds,
+            Pageable pageable) {
+
+        OffsetDateTime startDate = null;
+        OffsetDateTime endDate = null;
+
+        // Si se proporciona una fecha, creamos un rango para todo ese día.
+        if (transferDate != null && !transferDate.isBlank()) {
+            LocalDate date = LocalDate.parse(transferDate); // Asume formato "YYYY-MM-DD"
+            startDate = date.atStartOfDay().atOffset(ZoneOffset.UTC);
+            endDate = date.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
+        }
+
+        // Las listas vacías deben ser tratadas como nulas para que la consulta JPQL funcione correctamente.
+        List<Long> finalToolIds = (toolIds != null && !toolIds.isEmpty()) ? toolIds : null;
+        List<Long> finalPartIds = (partIds != null && !partIds.isEmpty()) ? partIds : null;
+        List<Long> finalVehicleIds = (vehicleIds != null && !vehicleIds.isEmpty()) ? vehicleIds : null;
+
+
+        Page<Transfer> transfers = transferRepository.findWithFilters(
+                originId,
+                destinationId,
+                startDate,
+                endDate,
+                finalToolIds,
+                finalPartIds,
+                finalVehicleIds,
+                pageable
+        );
+
+        return transfers.map(transferMapper::toResponse);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Transactional
     public TransferResponse cancelTransfer(Long transferId) {
         Transfer transfer = transferRepository.findById(transferId)
@@ -137,19 +181,21 @@ public class TransferServiceImpl implements TransferService {
      * {@inheritDoc}
      */
     @Override
+    @Transactional(readOnly = true)
     public TransferResponse getTransferById(Long transferId) {
         Transfer transfer = transferRepository.findById(transferId)
                 .orElseThrow(() -> new EntityNotFoundException("Transfer not found"));
         return transferMapper.toResponse(transfer);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
-        return transferRepository.findAll(pageable).map(transferMapper::toResponse);
-    }
+//    /**
+//     * {@inheritDoc}
+//     */
+//    @Override
+//    @Transactional(readOnly = true)
+//    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
+//        return transferRepository.findAll(pageable).map(transferMapper::toResponse);
+//    }
 
     private void validateHeadquarters(Long originId, Long destId) {
         if (originId.equals(destId)) {
@@ -202,12 +248,12 @@ public class TransferServiceImpl implements TransferService {
 
         if (request.getVehicleParts() != null) {
             for (TransferRequest.PartItem item : request.getVehicleParts()) {
-                VehiclePart part = vehiclePartRepository.findById(item.getPartId()).orElseThrow(() -> new EntityNotFoundException("Part not found: " + item.getPartId()));
-                if (part.getVehicleAssociated()) {
+                VehiclePartInventory originInventory = vehiclePartInventoryRepository.
+                        findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(item.getPartId(), request.getOriginHeadquarterId())
+                        .orElseThrow(() -> new EntityNotFoundException("Part " + item.getPartId() + " not found in origin headquarter."));
+                if (originInventory.getVehicleAssociated()) {
                     throw new IllegalStateException("Part " + item.getPartId() + " is associated with a vehicle and cannot be transferred individually.");
                 }
-                VehiclePartInventory originInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(item.getPartId(), request.getOriginHeadquarterId())
-                        .orElseThrow(() -> new EntityNotFoundException("Part " + item.getPartId() + " not found in origin headquarter."));
                 if (originInventory.getQuantity() < item.getQuantity()) {
                     throw new IllegalStateException("Insufficient stock for part " + item.getPartId() + " at origin headquarter.");
                 }
@@ -270,11 +316,13 @@ public class TransferServiceImpl implements TransferService {
             int quantity = tvp.getQuantity();
             VehiclePart part = tvp.getVehiclePart();
 
-            VehiclePartInventory originInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(part.getId(), origin.getId()).orElseThrow();
+            VehiclePartInventory originInventory = vehiclePartInventoryRepository.
+                    findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(part.getId(), origin.getId()).orElseThrow();
             originInventory.setQuantity(originInventory.getQuantity() - quantity);
             vehiclePartInventoryRepository.save(originInventory);
 
-            VehiclePartInventory destInventory = vehiclePartInventoryRepository.findByVehiclePartIdAndHeadquarterId(part.getId(), destination.getId())
+            VehiclePartInventory destInventory = vehiclePartInventoryRepository.
+                    findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(part.getId(), destination.getId())
                     .orElseGet(() -> createNewPartInventory(part, destination));
 
             destInventory.setQuantity(destInventory.getQuantity() + quantity);

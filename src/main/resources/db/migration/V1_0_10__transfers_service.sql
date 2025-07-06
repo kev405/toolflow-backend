@@ -44,13 +44,13 @@ CREATE TABLE IF NOT EXISTS transfer_tools (
 CREATE TABLE IF NOT EXISTS transfer_vehicle_parts (
     id           BIGSERIAL PRIMARY KEY,
     transfer_id  BIGINT  NOT NULL,
-    part_id      BIGINT  NOT NULL,
+    vehicle_part_id      BIGINT  NOT NULL,
     quantity     INTEGER NOT NULL,
     CONSTRAINT fk_transfer_parts_to_transfer
     FOREIGN KEY (transfer_id)
     REFERENCES transfer(id) ON DELETE CASCADE,
     CONSTRAINT fk_transfer_parts_to_part
-    FOREIGN KEY (part_id)
+    FOREIGN KEY (vehicle_part_id)
     REFERENCES vehicle_part(id)
     );
 

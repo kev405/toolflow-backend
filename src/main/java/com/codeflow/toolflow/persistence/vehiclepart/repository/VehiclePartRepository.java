@@ -16,6 +16,8 @@ import java.util.Optional;
 @Repository
 public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> {
 
+    Optional<VehiclePart> findByNameAndIsDeletedFalse(String name);
+
     /**
      * Finds a non-deleted part by its ID, explicitly fetching all related
      * inventory and headquarter data in a single query to prevent lazy loading issues.
@@ -33,10 +35,9 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
      * This is used to enforce the composite unique constraint before attempting to save a new entity.
      *
      * @param name The name of the vehicle part.
-     * @param vehicleAssociated The association status of the vehicle part.
      * @return true if a matching part exists, false otherwise.
      */
-    boolean existsByNameAndVehicleAssociatedAndIsDeletedFalse(String name, Boolean vehicleAssociated);
+    boolean existsByNameAndIsDeletedFalse(String name);
 
     /**
      * Finds a paginated list of non-deleted vehicle parts based on optional filter criteria.

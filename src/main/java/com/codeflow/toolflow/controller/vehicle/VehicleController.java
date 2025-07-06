@@ -1,6 +1,7 @@
 package com.codeflow.toolflow.controller.vehicle;
 
 import com.codeflow.toolflow.dto.ApiError;
+import com.codeflow.toolflow.dto.vehicle.TransferableVehicleResponse;
 import com.codeflow.toolflow.dto.vehicle.VehicleRequest;
 import com.codeflow.toolflow.dto.vehicle.VehicleResponse;
 import com.codeflow.toolflow.service.vehicle.VehicleService;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +35,29 @@ public class VehicleController {
 
     @Autowired
     private VehicleService vehicleService;
+
+    @Operation(summary = "Get available vehicles for transfer",
+            description = "Returns a list of all vehicles currently assigned to a specific origin headquarter, making them available for a transfer operation.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "List of available vehicles retrieved successfully.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(type = "array", implementation = TransferableVehicleResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bad Request - The required 'headquarterId' parameter is missing.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or invalid."),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role."),
+            @ApiResponse(responseCode = "404", description = "Not Found - The specified 'headquarterId' does not exist.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/available-for-transfer") // URL específica para claridad
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<List<TransferableVehicleResponse>> getAvailableVehicles(
+            @Parameter(description = "ID of the origin headquarter to list vehicles from.", required = true)
+            @RequestParam Long headquarterId) {
+        return ResponseEntity.ok(vehicleService.getAvailableVehicles(headquarterId));
+    }
 
 
     @GetMapping(path = "/findBy")

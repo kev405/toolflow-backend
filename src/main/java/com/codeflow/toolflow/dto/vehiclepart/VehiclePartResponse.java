@@ -27,7 +27,6 @@ public class VehiclePartResponse {
     private String model;
     private String description;
     private String notes;
-    private Boolean vehicleAssociated;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long createdBy;
@@ -41,6 +40,7 @@ public class VehiclePartResponse {
     public static class InventoryDetail {
         private Long headquarterId;
         private String headquarterName;
+        private Boolean vehicleAssociated;
         private Integer quantity;
         private Long vehicleId; // <-- NUEVO CAMPO
     }

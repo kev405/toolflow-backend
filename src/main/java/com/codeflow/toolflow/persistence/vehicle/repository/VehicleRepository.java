@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.persistence.vehicle.repository;
 
+import java.util.List;
 import com.codeflow.toolflow.persistence.vehicle.entity.Vehicle;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,5 +35,12 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
             @Param("headquarterId") Long headquarterId,
             Pageable pageable
     );
+
+    /**
+     * Finds all vehicles assigned to a specific headquarter.
+     * @param headquarterId The ID of the headquarter.
+     * @return A list of vehicles.
+     */
+    List<Vehicle> findAllByHeadquarterId(Long headquarterId);
 
 }

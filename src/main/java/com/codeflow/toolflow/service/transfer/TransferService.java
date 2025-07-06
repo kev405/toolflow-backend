@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.service.transfer;
 
+import java.util.List;
 import com.codeflow.toolflow.dto.transfer.TransferRequest;
 import com.codeflow.toolflow.dto.transfer.TransferResponse;
 import org.springframework.data.domain.Page;
@@ -42,11 +43,33 @@ public interface TransferService {
      */
     TransferResponse getTransferById(Long transferId);
 
+//    /**
+//     * Retrieves a paginated list of all transfers.
+//     *
+//     * @param pageable Pagination and sorting information.
+//     * @return A page of transfers.
+//     */
+//    Page<TransferResponse> getAllTransfers(Pageable pageable);
+
     /**
-     * Retrieves a paginated list of all transfers.
+     * Retrieves a paginated list of transfers based on a set of optional filters.
      *
+     * @param originId Optional ID of the origin headquarter.
+     * @param destinationId Optional ID of the destination headquarter.
+     * @param transferDate Optional specific date for the transfer. Can be null.
+     * @param toolIds Optional list of tool IDs to filter by.
+     * @param partIds Optional list of vehicle part IDs to filter by.
+     * @param vehicleIds Optional list of vehicle IDs to filter by.
      * @param pageable Pagination and sorting information.
-     * @return A page of transfers.
+     * @return A page of transfer DTOs.
      */
-    Page<TransferResponse> getAllTransfers(Pageable pageable);
+    Page<TransferResponse> getAllTransfers(
+            Long originId,
+            Long destinationId,
+            String transferDate, // Recibimos la fecha como String desde el controller
+            List<Long> toolIds,
+            List<Long> partIds,
+            List<Long> vehicleIds,
+            Pageable pageable
+    );
 }

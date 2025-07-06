@@ -57,10 +57,9 @@ security:
 
 logging:
   level:
-    com.zaxxer.hikari: DEBUG
-    org.postgresql: DEBUG
+    com.zaxxer.hikari: INFO
+    org.postgresql: INFO
 
 email:
   admin:
     from: ${SMTP_USERNAME}
-    password: ${SMTP_PASSWORD}
