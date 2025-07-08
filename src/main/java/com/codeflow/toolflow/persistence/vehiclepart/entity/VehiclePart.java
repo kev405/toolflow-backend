@@ -59,6 +59,7 @@ public class VehiclePart {
     @NotNull
     private String brand;
 
+    @Builder.Default
     @OneToMany(mappedBy = "vehiclePart", fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<VehiclePartInventory> inventories = new ArrayList<>();
 
