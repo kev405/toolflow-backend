@@ -6,11 +6,14 @@ import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
 import com.codeflow.toolflow.service.user.UserService;
+import com.codeflow.toolflow.util.enums.Role;
 import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,17 +48,30 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse login(AuthenticationRequest autRequest) {
+        try {
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    autRequest.getUsername(), autRequest.getPassword()
+            );
+            authenticationManager.authenticate(authentication);
+        } catch (BadCredentialsException ex) {
+            throw new BadCredentialsException("Credenciales inválidas. Verifica tu usuario y contraseña.");
+        } catch (DisabledException ex) {
+            throw new AccessDeniedException("La cuenta está deshabilitada. Contacta al administrador.");
+        }
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                autRequest.getUsername(), autRequest.getPassword()
+        User user = userService.findOneByUsername(autRequest.getUsername()).orElseThrow(() ->
+                new ObjectNotFoundException("Usuario no encontrado: " + autRequest.getUsername())
         );
 
-        authenticationManager.authenticate(authentication);
-        User user = userService.findOneByUsername(autRequest.getUsername()).orElseThrow(() ->
-                new ObjectNotFoundException("User not found. Username: " + autRequest.getUsername()));
-
         if (!user.isStatus()) {
-            throw new AccessDeniedException("User is disabled or not allowed to log in.");
+            throw new AccessDeniedException("La cuenta está deshabilitada o no tiene permisos para iniciar sesión.");
+        }
+
+        boolean isStudent = user.getUserRoles().stream()
+                .anyMatch(userRole -> Role.STUDENT.getEnumKey().equals(userRole.getRole().getEnumKey()));
+
+        if (isStudent) {
+            throw new AccessDeniedException("Los estudiantes no pueden iniciar sesión. Contacta al administrador.");
         }
 
         UserDetails userDetails = UserLogin.builder()

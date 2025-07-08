@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -56,7 +57,7 @@ public class SecurityBeansInjector {
 
                         return userLogin;
                     })
-                    .orElseThrow(() -> new ObjectNotFoundException("User not found with username " + username));
+                    .orElseThrow(() -> new UsernameNotFoundException("Credenciales inválidas. Verifica tu usuario y contraseña."));
         };
     }
 

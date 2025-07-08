@@ -8,6 +8,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +21,19 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 @Log4j2
 public class GlobalExceptionHandler {
+    @ExceptionHandler(ObjectNotFoundException.class)
+    public ResponseEntity<ApiError> handleObjectNotFound(HttpServletRequest request,
+                                                         ObjectNotFoundException exception) {
+        ApiError apiError = ApiError.builder()
+                .message("El recurso solicitado no existe.")
+                .backendMessage(exception.getLocalizedMessage())
+                .url(request.getRequestURL().toString())
+                .method(request.getMethod())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiError> handleConstraintViolationException(HttpServletRequest request,
@@ -154,7 +169,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleAccessDenied(HttpServletRequest request,
                                                        org.springframework.security.access.AccessDeniedException exception) {
         ApiError apiError = ApiError.builder()
-                .message("No tienes permisos para acceder a este recurso.")
+                .message(exception.getMessage() != null && !exception.getMessage().isEmpty() ? exception.getMessage() : "No tienes permisos para acceder a este recurso.")
                 .backendMessage(exception.getMessage())
                 .url(request.getRequestURL().toString())
                 .method(request.getMethod())
@@ -188,5 +203,33 @@ public class GlobalExceptionHandler {
         apiError.setMessage("La herramienta no existe");
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiError);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> handleBadCredentials(HttpServletRequest request,
+                                                         BadCredentialsException exception) {
+        ApiError apiError = ApiError.builder()
+                .message("Credenciales inválidas. Verifica tu usuario y contraseña.")
+                .backendMessage(exception.getLocalizedMessage())
+                .url(request.getRequestURL().toString())
+                .method(request.getMethod())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(apiError);
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiError> handleDisabledAccount(HttpServletRequest request,
+                                                          DisabledException exception) {
+        ApiError apiError = ApiError.builder()
+                .message("La cuenta está deshabilitada. Contacta al administrador.")
+                .backendMessage(exception.getLocalizedMessage())
+                .url(request.getRequestURL().toString())
+                .method(request.getMethod())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
     }
 }
