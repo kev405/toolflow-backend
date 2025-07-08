@@ -54,9 +54,13 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
             "WHERE vp.isDeleted = false " +
             "AND (:namePattern IS NULL OR LOWER(vp.name) LIKE :namePattern) " +
             "AND (:vehicleId IS NULL OR vpi.vehicle = :vehicleId) " +
-            "AND (:headquarterId IS NULL OR vpi.headquarter.id = :headquarterId)")
+            "AND (:headquarterId IS NULL OR vpi.headquarter.id = :headquarterId)" +
+            "AND (:model IS NULL OR LOWER(vp.model) LIKE :model) " +
+            "AND (:brand IS NULL OR LOWER(vp.brand) LIKE :brand) ")
     Page<VehiclePart> findWithFilters(
             @Param("namePattern") String namePattern,
+            @Param("model") String Model,
+            @Param("brand") String Brand,
             @Param("vehicleId") Long vehicleId,
             @Param("headquarterId") Long headquarterId,
             Pageable pageable);

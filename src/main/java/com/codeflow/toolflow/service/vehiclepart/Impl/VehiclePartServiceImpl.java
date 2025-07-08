@@ -269,9 +269,11 @@ public class VehiclePartServiceImpl implements VehiclePartService {
      * {@inheritDoc}
      */
     @Override
-    public Page<VehiclePartResponse> getPage(String name, Long vehicleId, Long headquarterId, Pageable pageable) {
+    public Page<VehiclePartResponse> getPage(String name, String brand, String model, Long vehicleId, Long headquarterId, Pageable pageable) {
         Page<VehiclePart> page = vehiclePartRepository.findWithFilters(
                 nullIfBlank(name),
+                model,
+                brand,
                 vehicleId,
                 headquarterId,
                 pageable

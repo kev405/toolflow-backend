@@ -72,10 +72,12 @@ public class VehiclePartController {
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public Page<VehiclePartResponse> getParts(
             @Parameter(description = "Filter by part name") @RequestParam(required = false) String name,
+            @Parameter(description = "Filter by part model") @RequestParam(required = false) String model,
+            @Parameter(description = "Filter by part brand") @RequestParam(required = false) String brand,
             @Parameter(description = "Filter by associated vehicle ID") @RequestParam(required = false) Long vehicleId,
             @Parameter(description = "Filter by headquarter ID") @RequestParam(required = false) Long headquarterId,
             Pageable pageable) {
-        return vehiclePartService.getPage(name, vehicleId, headquarterId, pageable);
+        return vehiclePartService.getPage(name, brand, model, vehicleId, headquarterId, pageable);
     }
 
     @Operation(summary = "Get a vehicle part by ID")

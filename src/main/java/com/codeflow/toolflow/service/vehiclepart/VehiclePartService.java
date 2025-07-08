@@ -70,7 +70,7 @@ public interface VehiclePartService {
      * @param pageable Pagination and sorting information.
      * @return A {@link Page} of {@link VehiclePartResponse} matching the criteria.
      */
-    Page<VehiclePartResponse> getPage(String name, Long vehicleId, Long headquarterId, Pageable pageable);
+    Page<VehiclePartResponse> getPage(String name, String brand, String model, Long vehicleId, Long headquarterId, Pageable pageable);
 
     /**
      * Retrieves a list of transferable vehicle parts available at a specific headquarter.
