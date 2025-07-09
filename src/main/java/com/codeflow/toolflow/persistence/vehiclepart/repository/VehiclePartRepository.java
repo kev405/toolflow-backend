@@ -52,15 +52,15 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
     @Query("SELECT DISTINCT vp FROM VehiclePart vp " +
             "LEFT JOIN VehiclePartInventory vpi ON vpi.vehiclePart.id = vp.id " +
             "WHERE vp.isDeleted = false " +
+            "AND (:model IS NULL OR LOWER(vp.model) LIKE :model) " +
+            "AND (:brand IS NULL OR LOWER(vp.brand) LIKE :brand) " +
             "AND (:namePattern IS NULL OR LOWER(vp.name) LIKE :namePattern) " +
             "AND (:vehicleId IS NULL OR vpi.vehicle = :vehicleId) " +
-            "AND (:headquarterId IS NULL OR vpi.headquarter.id = :headquarterId)" +
-            "AND (:model IS NULL OR LOWER(vp.model) LIKE :model) " +
-            "AND (:brand IS NULL OR LOWER(vp.brand) LIKE :brand) ")
+            "AND (:headquarterId IS NULL OR vpi.headquarter.id = :headquarterId)")
     Page<VehiclePart> findWithFilters(
             @Param("namePattern") String namePattern,
-            @Param("model") String Model,
-            @Param("brand") String Brand,
+            @Param("model") String model,
+            @Param("brand") String brand,
             @Param("vehicleId") Long vehicleId,
             @Param("headquarterId") Long headquarterId,
             Pageable pageable);

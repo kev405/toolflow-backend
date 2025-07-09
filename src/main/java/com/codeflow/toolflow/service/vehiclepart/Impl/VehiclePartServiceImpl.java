@@ -272,8 +272,8 @@ public class VehiclePartServiceImpl implements VehiclePartService {
     public Page<VehiclePartResponse> getPage(String name, String brand, String model, Long vehicleId, Long headquarterId, Pageable pageable) {
         Page<VehiclePart> page = vehiclePartRepository.findWithFilters(
                 nullIfBlank(name),
-                model,
-                brand,
+                nullIfBlank(model),
+                nullIfBlank(brand),
                 vehicleId,
                 headquarterId,
                 pageable
