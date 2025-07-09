@@ -42,5 +42,5 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
      * @return A list of vehicles.
      */
     List<Vehicle> findAllByHeadquarterId(Long headquarterId);
-
+    boolean existsByHeadquarterId(Long headquarterId);
 }

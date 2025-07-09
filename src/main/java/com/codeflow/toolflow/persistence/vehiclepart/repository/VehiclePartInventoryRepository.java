@@ -88,4 +88,13 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
     Optional<VehiclePartInventory> findAvailableNonAssociatedPartsByVehiclePartIdAndHeadquarter(@Param("vehiclePartId") Long vehiclePartId, @Param("headquarterId") Long headquarterId);
 
     boolean existsByVehiclePartIdAndVehicle(Long vehiclePartId, Long vehicleId);
+
+    /**
+     * Checks if there is an inventory record for a specific headquarter with available quantity greater than a specified amount.
+     *
+     * @param headquarterId The ID of the headquarter.
+     * @param quantity The minimum available quantity to check.
+     * @return true if such an inventory record exists, false otherwise.
+     */
+    boolean existsByHeadquarterIdAndQuantityGreaterThan(Long headquarterId, int quantity);
 }

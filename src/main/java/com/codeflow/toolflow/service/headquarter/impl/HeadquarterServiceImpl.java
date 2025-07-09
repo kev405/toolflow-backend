@@ -6,9 +6,14 @@ import com.codeflow.toolflow.dto.headquarter.HeadquarterResponse;
 import com.codeflow.toolflow.mapper.headquarter.HeadquarterMapper;
 import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import com.codeflow.toolflow.persistence.headquarter.repository.HeadquarterRepository;
+import com.codeflow.toolflow.persistence.tool.repository.ToolInventoryRepository;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
+import com.codeflow.toolflow.persistence.vehicle.repository.VehicleRepository;
+import com.codeflow.toolflow.persistence.vehiclepart.repository.VehiclePartInventoryRepository;
 import com.codeflow.toolflow.service.headquarter.HeadquarterService;
+import com.codeflow.toolflow.util.exception.AssociatedEntitiesExistException;
+import com.codeflow.toolflow.util.exception.MainHeadquarterDeletionException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +32,9 @@ public class HeadquarterServiceImpl implements HeadquarterService {
     private final HeadquarterRepository headquarterRepository;
     private final UserRepository userRepository;
     private final HeadquarterMapper headquarterMapper;
+    private final VehicleRepository vehicleRepository;
+    private final ToolInventoryRepository toolInventoryRepository;
+    private final VehiclePartInventoryRepository vehiclePartInventoryRepository;
 
     @Override
     @Transactional
@@ -68,29 +76,27 @@ public class HeadquarterServiceImpl implements HeadquarterService {
     @Transactional
     public void deleteOne(Long id) {
         Headquarter headquarter = headquarterRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Headquarter not found"));
+                .orElseThrow(() -> new EntityNotFoundException("La sede no fue encontrada con el id: " + id));
 
-        if (headquarter.getMain() != null && headquarter.getMain()) {
-            throw new IllegalStateException("The main headquarter cannot be deleted.");
+        if (Boolean.TRUE.equals(headquarter.getMain())) {
+            throw new MainHeadquarterDeletionException("No es posible eliminar la sede principal.");
         }
 
-        // 🔒 Verificación pendiente: asegurar que no haya entidades asociadas antes de eliminar
-        // Ejemplo:
+        boolean hasVehicles = vehicleRepository.existsByHeadquarterId(id);
+        boolean hasToolsWithStock = toolInventoryRepository.existsByHeadquarterIdAndAvailableGreaterThan(id, 0);
+        boolean hasVehiclePartsWithStock = vehiclePartInventoryRepository.existsByHeadquarterIdAndQuantityGreaterThan(id, 0);
 
-        /*
-        boolean hasTools = toolRepository.existsByHeadquarterIdAndStatusTrue(id);
-        boolean hasVehicles = vehicleRepository.existsByHeadquarterIdAndStatusTrue(id);
-        boolean hasParts = vehiclePartRepository.existsByHeadquarterIdAndStatusTrue(id);
-
-        if (hasTools || hasVehicles || hasParts) {
-            throw new IllegalStateException("Cannot delete headquarter with associated tools, vehicles, or parts.");
+        if (hasVehicles || hasToolsWithStock || hasVehiclePartsWithStock) {
+            StringBuilder sb = new StringBuilder("No se puede eliminar la sede porque tiene entidades asociadas: ");
+            if (hasVehicles) sb.append("[Vehículos] ");
+            if (hasToolsWithStock) sb.append("[Herramientas con stock disponible] ");
+            if (hasVehiclePartsWithStock) sb.append("[Partes de vehículo con stock disponible] ");
+            throw new AssociatedEntitiesExistException(sb.toString().trim());
         }
-        */
 
         headquarter.setStatus(false);
         headquarter.setUpdatedAt(LocalDateTime.now());
         headquarter.setUpdatedBy(getCurrentUserId());
-
         headquarterRepository.save(headquarter);
     }
 
