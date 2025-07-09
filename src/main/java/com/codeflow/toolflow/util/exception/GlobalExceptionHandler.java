@@ -232,4 +232,36 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(apiError);
     }
+
+    @ExceptionHandler(MainHeadquarterDeletionException.class)
+    public ResponseEntity<ApiError> handleMainHeadquarterDeletionException(
+            HttpServletRequest request,
+            MainHeadquarterDeletionException exception) {
+
+        ApiError apiError = ApiError.builder()
+                .message("No es posible eliminar la sede principal.")
+                .backendMessage(exception.getLocalizedMessage())
+                .url(request.getRequestURL().toString())
+                .method(request.getMethod())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+    }
+
+    @ExceptionHandler(AssociatedEntitiesExistException.class)
+    public ResponseEntity<ApiError> handleAssociatedEntitiesExistException(
+            HttpServletRequest request,
+            AssociatedEntitiesExistException exception) {
+
+        ApiError apiError = ApiError.builder()
+                .message(exception.getMessage())
+                .backendMessage(exception.getLocalizedMessage())
+                .url(request.getRequestURL().toString())
+                .method(request.getMethod())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+    }
 }
