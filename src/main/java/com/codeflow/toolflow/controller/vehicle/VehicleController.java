@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
-@RequestMapping("/api/vehicles")
+@RequestMapping("/vehicle")
 public class VehicleController {
 
     @Autowired
