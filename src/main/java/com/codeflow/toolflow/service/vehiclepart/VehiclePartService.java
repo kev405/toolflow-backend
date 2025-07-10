@@ -79,4 +79,11 @@ public interface VehiclePartService {
      * @return A list of {@link TransferablePartVehicleResponse} containing the available parts.
      */
     List<TransferablePartVehicleResponse> getAvailableVehicleParts(Long headquarterId);
+
+    /**
+     * Retrieves a list of all vehicle parts.
+     *
+     * @return A list of {@link TransferablePartVehicleResponse} containing the available parts.
+     */
+    List<TransferablePartVehicleResponse> getAllVehicleParts();
 }

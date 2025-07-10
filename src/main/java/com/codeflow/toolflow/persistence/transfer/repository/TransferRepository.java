@@ -38,8 +38,8 @@ public interface TransferRepository extends JpaRepository<Transfer, Long> {
             "WHERE " +
             "(:originId IS NULL OR t.originHeadquarter.id = :originId) AND " +
             "(:destinationId IS NULL OR t.destinationHeadquarter.id = :destinationId) AND " +
-            "(:startDate IS NULL OR t.transferDate >= :startDate) AND " +
-            "(:endDate IS NULL OR t.transferDate <= :endDate) AND " +
+            "(CAST(:startDate as string) IS NULL OR t.transferDate >= :startDate) AND " +
+            "(CAST(:endDate as string) IS NULL OR t.transferDate <= :endDate) AND " +
             "(:toolIds IS NULL OR tt.tool.id IN :toolIds) AND " +
             "(:partIds IS NULL OR tvp.vehiclePart.id IN :partIds) AND " +
             "(:vehicleIds IS NULL OR tv.vehicle.id IN :vehicleIds)")

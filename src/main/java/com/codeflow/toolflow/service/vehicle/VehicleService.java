@@ -66,4 +66,9 @@ public interface VehicleService {
      */
     List<TransferableVehicleResponse> getAvailableVehicles(Long headquarterId);
 
+    /**
+     * Retrieves all vehicles.
+     */
+    List<TransferableVehicleResponse> getAllVehicles();
+
 }

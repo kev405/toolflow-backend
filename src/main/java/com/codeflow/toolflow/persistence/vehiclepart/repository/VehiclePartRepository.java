@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -64,4 +65,13 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
             @Param("vehicleId") Long vehicleId,
             @Param("headquarterId") Long headquarterId,
             Pageable pageable);
+
+    /**
+     * Finds all inventory for parts that are not associated with a specific vehicle
+     * and have available stock.
+     * @return A list of vehicle part inventory records.
+     */
+    @Query("SELECT vp FROM VehiclePart vp " +
+            "WHERE vp.isDeleted = false ")
+    List<VehiclePart> findallNonDeletedParts();
 }

@@ -69,6 +69,22 @@ public class VehicleServiceImpl implements VehicleService {
 
     /**
      * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransferableVehicleResponse> getAllVehicles() {
+        return vehicleRepository.findAll().stream()
+                .map(vehicle -> TransferableVehicleResponse.builder()
+                        .id(vehicle.getId())
+                        .name(vehicle.getBrand() + " " + vehicle.getModel() + " (" + vehicle.getPlate() + ")")
+                        .availableQuantity(1) // A vehicle is a single unit
+                        .build())
+                .collect(Collectors.toList());
+
+    }
+
+    /**
+     * {@inheritDoc}
      * <p>
      * The method performs an <em>upsert</em>: if the ID contained in
      * {@code VehicleRequest} already exists, it updates the record; otherwise it

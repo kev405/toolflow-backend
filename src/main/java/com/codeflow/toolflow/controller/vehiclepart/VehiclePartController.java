@@ -58,12 +58,27 @@ public class VehiclePartController {
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiError.class)))
     })
-    @GetMapping("/available-for-transfer") // Se recomienda una URL más específica para evitar colisiones
+    @GetMapping("/available-for-transfer")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public ResponseEntity<List<TransferablePartVehicleResponse>> getAvailableVehicleParts(
             @Parameter(description = "ID of the origin headquarter to check for available stock.", required = true)
             @RequestParam Long headquarterId) {
         return ResponseEntity.ok(vehiclePartService.getAvailableVehicleParts(headquarterId));
+    }
+
+    @Operation(summary = "Get a list of all vehicle parts",
+            description = "Returns a complete list of all vehicle parts registered in the system, suitable for various operations.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Complete list of vehicle parts retrieved successfully.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(type = "array", implementation = TransferablePartVehicleResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or invalid."),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role.")
+    })
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<List<TransferablePartVehicleResponse>> getAllVehicleParts() {
+        return ResponseEntity.ok(vehiclePartService.getAllVehicleParts());
     }
 
     @Operation(summary = "Get a paginated list of vehicle parts",
@@ -128,7 +143,7 @@ public class VehiclePartController {
             @ApiResponse(responseCode = "400", description = "Invalid request (e.g., insufficient stock, same source/destination)"),
             @ApiResponse(responseCode = "404", description = "Part, headquarter, or source inventory not found")
     })
-    @PutMapping("/{partId}/headquarters/{headquarterId}/association") // Se mantiene el endpoint PUT
+    @PutMapping("/{partId}/headquarters/{headquarterId}/association")
     @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
     public ResponseEntity<Void> moveInventoryAssociation(
             @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,

@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
-@RequestMapping("/vehicle")
+@RequestMapping("/api/vehicles")
 public class VehicleController {
 
     @Autowired
@@ -57,6 +57,21 @@ public class VehicleController {
             @Parameter(description = "ID of the origin headquarter to list vehicles from.", required = true)
             @RequestParam Long headquarterId) {
         return ResponseEntity.ok(vehicleService.getAvailableVehicles(headquarterId));
+    }
+
+    @Operation(summary = "Get a list of all transferable vehicles",
+            description = "Returns a complete list of all vehicles registered in the system, regardless of their current headquarter or status.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Complete list of vehicles retrieved successfully.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(type = "array", implementation = TransferableVehicleResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication token is missing or invalid."),
+            @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role.")
+    })
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<List<TransferableVehicleResponse>> getllVehicles() {
+        return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
 

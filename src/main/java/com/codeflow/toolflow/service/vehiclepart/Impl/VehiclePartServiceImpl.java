@@ -296,6 +296,21 @@ public class VehiclePartServiceImpl implements VehiclePartService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransferablePartVehicleResponse> getAllVehicleParts() {
+        return vehiclePartRepository.findallNonDeletedParts().stream()
+                .map(vehiclePart -> TransferablePartVehicleResponse.builder()
+                        .id(vehiclePart.getId())
+                        .name(vehiclePart.getName())
+                        .availableQuantity(0)
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     private String nullIfBlank(String value) {
         return (value == null || value.isBlank()) ? null : "%" + value.toLowerCase() + "%";
     }
