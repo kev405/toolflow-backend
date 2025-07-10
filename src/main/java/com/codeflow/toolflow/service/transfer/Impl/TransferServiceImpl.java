@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.service.transfer.Impl;
 
+import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.dto.transfer.TransferRequest;
 import com.codeflow.toolflow.dto.transfer.TransferResponse;
 import com.codeflow.toolflow.mapper.transfer.TransferMapper;
@@ -25,6 +26,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -340,6 +342,8 @@ public class TransferServiceImpl implements TransferService {
                 .damaged(0)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .createdBy(getCurrentUserId())
+                .updatedBy(getCurrentUserId())
                 .build();
     }
 
@@ -351,5 +355,13 @@ public class TransferServiceImpl implements TransferService {
                 .quantity(0)
                 .vehicleAssociated(false)
                 .build();
+    }
+
+    private Long getCurrentUserId() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserLogin userDetails) {
+            return userDetails.getId();
+        }
+        throw new IllegalStateException("No authenticated user found.");
     }
 }
