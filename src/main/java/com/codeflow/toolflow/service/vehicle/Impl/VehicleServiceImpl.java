@@ -77,6 +77,7 @@ public class VehicleServiceImpl implements VehicleService {
                 .map(vehicle -> TransferableVehicleResponse.builder()
                         .id(vehicle.getId())
                         .name(vehicle.getBrand() + " " + vehicle.getModel() + " (" + vehicle.getPlate() + ")")
+                        .vehicleType(vehicle.getVehicleType())
                         .availableQuantity(1) // A vehicle is a single unit
                         .build())
                 .collect(Collectors.toList());
@@ -146,16 +147,6 @@ public class VehicleServiceImpl implements VehicleService {
                                          String location,
                                          Long headquarterId, // 🆕
                                          Pageable pageable) {
-        System.out.println("Fetching vehicles with filters: " +
-                "vehicleType=" + vehicleType +
-                ", plate=" + plate +
-                ", model=" + model +
-                ", color=" + color +
-                ", numberChasis=" + numberChasis +
-                ", brand=" + brand +
-                ", location=" + location +
-                ", headquarterId=" + headquarterId);
-
         return vehicleRepository.queryPageable(
                 nullIfBlank(vehicleType),
                 nullIfBlank(plate),
