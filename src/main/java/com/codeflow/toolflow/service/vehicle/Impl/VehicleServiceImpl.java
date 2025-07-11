@@ -95,6 +95,8 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public VehicleResponse updateOneVehicle(VehicleRequest VehicleRequest) {
         Vehicle entity = vehicleMapper.toEntity(VehicleRequest);
+        VehicleResponse entityToUpdate = getOne(VehicleRequest.getId());
+        entity.setHeadquarter(headquarterService.getOneEntity(entityToUpdate.getHeadquarter().getId()));
         Vehicle entitySaved = vehicleRepository.save(entity);
         return vehicleMapper.toResponse(entitySaved);
     }

@@ -108,6 +108,12 @@ public class HeadquarterServiceImpl implements HeadquarterService {
     }
 
     @Override
+    public Headquarter getOneEntity(Long id) {
+        return headquarterRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Headquarter not found"));
+    }
+
+    @Override
     public List<HeadquarterResponse> getAll() {
         return headquarterRepository.findAll().stream()
                 .map(headquarterMapper::toResponse)

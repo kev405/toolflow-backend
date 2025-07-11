@@ -46,6 +46,14 @@ public interface HeadquarterService {
     HeadquarterResponse getOne(Long id);
 
     /**
+     * Retrieves a headquarter by its ID.
+     *
+     * @param id the ID to look up
+     * @return a {@link Headquarter}
+     */
+    Headquarter getOneEntity(Long id);
+
+    /**
      * Retrieves all offices (e.g., fixed headquarters).
      *
      * @return list of {@link HeadquarterResponse}
