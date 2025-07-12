@@ -94,6 +94,73 @@ public class TransferServiceImpl implements TransferService {
         return transferMapper.toResponse(savedTransfer);
     }
 
+    // Añade este método completo a tu clase TransferServiceImpl.java
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public TransferResponse updateTransfer(Long transferId, TransferRequest request) {
+        // 1. Encontrar la transferencia existente
+        Transfer transfer = transferRepository.findById(transferId)
+                .orElseThrow(() -> new EntityNotFoundException("Transfer not found with ID: " + transferId));
+
+        // 2. Validar que el estado sea 'PENDING' para permitir la actualización
+        if (transfer.getStatus() != TransferStatus.PENDING) {
+            throw new IllegalStateException("Only PENDING transfers can be updated. Current status: " + transfer.getStatus());
+        }
+
+        // 3. Re-validar los datos de la solicitud (reglas de negocio y stock)
+        validateHeadquarters(request.getOriginHeadquarterId(), request.getDestinationHeadquarterId());
+        validateItemUniqueness(request);
+        validateStockAndOwnership(request);
+
+        // 4. Actualizar los datos de la transferencia
+        User responsible = userRepository.findById(request.getResponsibleId())
+                .orElseThrow(() -> new EntityNotFoundException("Responsible user not found"));
+        Headquarter origin = headquarterRepository.findById(request.getOriginHeadquarterId())
+                .orElseThrow(() -> new EntityNotFoundException("Origin headquarter not found"));
+        Headquarter destination = headquarterRepository.findById(request.getDestinationHeadquarterId())
+                .orElseThrow(() -> new EntityNotFoundException("Destination headquarter not found"));
+
+        transfer.setResponsible(responsible);
+        transfer.setOriginHeadquarter(origin);
+        transfer.setDestinationHeadquarter(destination);
+        transfer.setNotes(request.getNotes());
+
+        // 5. Limpiar las listas de items anteriores. Gracias a 'orphanRemoval=true' en la entidad Transfer,
+        // esto eliminará los registros asociados de las tablas transfer_tools, etc.
+        transfer.getTools().clear();
+        transfer.getVehicleParts().clear();
+        transfer.getVehicles().clear();
+
+        // 6. Mapear los nuevos items desde la solicitud a la entidad existente
+        Transfer updatedItems = transferMapper.toEntity(request);
+
+        updatedItems.getTools().forEach(item -> {
+            item.setTransfer(transfer);
+            transfer.getTools().add(item);
+        });
+
+        updatedItems.getVehicleParts().forEach(item -> {
+            item.setTransfer(transfer);
+            transfer.getVehicleParts().add(item);
+        });
+
+        updatedItems.getVehicles().forEach(item -> {
+            item.setTransfer(transfer);
+            transfer.getVehicles().add(item);
+        });
+
+        // 7. Enriquecer los nuevos items con las entidades completas (Tool, VehiclePart)
+        enrichTransferItems(transfer, request);
+
+        // 8. Guardar la entidad actualizada y devolver la respuesta
+        Transfer savedTransfer = transferRepository.save(transfer);
+        return transferMapper.toResponse(savedTransfer);
+    }
+
     /**
      * {@inheritDoc}
      */

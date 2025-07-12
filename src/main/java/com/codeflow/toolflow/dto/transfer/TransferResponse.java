@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import java.time.OffsetDateTime;
 import java.util.List;
+import com.codeflow.toolflow.util.enums.TransferStatus;
 
 @Data
 @Builder
@@ -13,6 +14,7 @@ public class TransferResponse {
     private HeadquarterSummary originHeadquarter;
     private HeadquarterSummary destinationHeadquarter;
     private OffsetDateTime transferDate;
+    private TransferStatus transferStatus;
     private String notes;
     private OffsetDateTime createdAt;
     private List<ToolItemResponse> tools;

@@ -52,6 +52,17 @@ public interface TransferService {
 //    Page<TransferResponse> getAllTransfers(Pageable pageable);
 
     /**
+     * Updates an existing transfer request.
+     *
+     * @param transferId The ID of the transfer to update.
+     * @param request The request DTO with the updated data.
+     * @return The updated transfer details.
+     * @throws jakarta.persistence.EntityNotFoundException if the transfer is not found.
+     * @throws IllegalStateException if the transfer is not in a PENDING state.
+     */
+    TransferResponse updateTransfer(Long transferId, TransferRequest request);
+
+    /**
      * Retrieves a paginated list of transfers based on a set of optional filters.
      *
      * @param originId Optional ID of the origin headquarter.

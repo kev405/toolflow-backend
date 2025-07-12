@@ -84,6 +84,7 @@ public interface TransferMapper {
     @Mapping(source = "tools", target = "tools")
     @Mapping(source = "vehicleParts", target = "vehicleParts")
     @Mapping(source = "vehicles", target = "vehicles")
+    @Mapping(source = "status", target = "transferStatus")
     TransferResponse toResponse(Transfer entity);
 
     default TransferResponse.UserSummary userToSummary(User user) {

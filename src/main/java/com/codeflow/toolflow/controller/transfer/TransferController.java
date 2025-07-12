@@ -66,6 +66,25 @@ public class TransferController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Update a pending transfer request",
+            description = "Updates the details of an existing transfer, provided it is still in 'PENDING' status. All previous items are replaced with the new ones provided.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Transfer updated successfully",
+                    content = @Content(schema = @Schema(implementation = TransferResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Transfer not found",
+                    content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "409", description = "Conflict: Transfer is not in 'PENDING' state",
+                    content = @Content(schema = @Schema(implementation = ApiError.class)))
+    })
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    public ResponseEntity<TransferResponse> updateTransfer(
+            @Parameter(description = "ID of the transfer to update") @PathVariable Long id,
+            @Valid @RequestBody TransferRequest request) {
+        TransferResponse response = transferService.updateTransfer(id, request);
+        return ResponseEntity.ok(response);
+    }
+
 //    @Operation(summary = "Get a paginated list of transfers",
 //            description = "Retrieves a list of all transfers, sorted and paginated.")
 //    @GetMapping
