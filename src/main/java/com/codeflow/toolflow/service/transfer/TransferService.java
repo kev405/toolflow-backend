@@ -1,10 +1,11 @@
 package com.codeflow.toolflow.service.transfer;
 
-import java.util.List;
 import com.codeflow.toolflow.dto.transfer.TransferRequest;
 import com.codeflow.toolflow.dto.transfer.TransferResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface TransferService {
 
@@ -55,23 +56,23 @@ public interface TransferService {
      * Updates an existing transfer request.
      *
      * @param transferId The ID of the transfer to update.
-     * @param request The request DTO with the updated data.
+     * @param request    The request DTO with the updated data.
      * @return The updated transfer details.
      * @throws jakarta.persistence.EntityNotFoundException if the transfer is not found.
-     * @throws IllegalStateException if the transfer is not in a PENDING state.
+     * @throws IllegalStateException                       if the transfer is not in a PENDING state.
      */
     TransferResponse updateTransfer(Long transferId, TransferRequest request);
 
     /**
      * Retrieves a paginated list of transfers based on a set of optional filters.
      *
-     * @param originId Optional ID of the origin headquarter.
+     * @param originId      Optional ID of the origin headquarter.
      * @param destinationId Optional ID of the destination headquarter.
-     * @param transferDate Optional specific date for the transfer. Can be null.
-     * @param toolIds Optional list of tool IDs to filter by.
-     * @param partIds Optional list of vehicle part IDs to filter by.
-     * @param vehicleIds Optional list of vehicle IDs to filter by.
-     * @param pageable Pagination and sorting information.
+     * @param transferDate  Optional specific date for the transfer. Can be null.
+     * @param toolIds       Optional list of tool IDs to filter by.
+     * @param partIds       Optional list of vehicle part IDs to filter by.
+     * @param vehicleIds    Optional list of vehicle IDs to filter by.
+     * @param pageable      Pagination and sorting information.
      * @return A page of transfer DTOs.
      */
     Page<TransferResponse> getAllTransfers(

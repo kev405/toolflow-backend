@@ -1,11 +1,9 @@
 package com.codeflow.toolflow.mapper.vehiclepart;
 
-import java.util.List;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartRequest;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartResponse;
 import com.codeflow.toolflow.dto.vehiclepart.VehiclePartUpdateRequest;
 import com.codeflow.toolflow.persistence.vehiclepart.entity.VehiclePart;
-import com.codeflow.toolflow.persistence.vehiclepart.entity.VehiclePartInventory;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -17,7 +15,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 @Mapper(
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        uses = { VehiclePartInventoryMapper.class }
+        uses = {VehiclePartInventoryMapper.class}
 )
 public interface VehiclePartMapper {
 
@@ -43,7 +41,7 @@ public interface VehiclePartMapper {
      * Updates an existing VehiclePart entity from a VehiclePartRequest DTO.
      * Null fields in the DTO will be ignored. The entity's ID will not be modified.
      *
-     * @param dto The source DTO with update data.
+     * @param dto    The source DTO with update data.
      * @param entity The target entity to be updated.
      */
     @Mapping(target = "id", ignore = true)

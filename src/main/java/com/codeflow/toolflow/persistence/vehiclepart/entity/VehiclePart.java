@@ -47,15 +47,21 @@ public class VehiclePart {
 
     /* ---------- Business fields ---------- */
 
-    /** Human-readable, system-wide unique name. */
+    /**
+     * Human-readable, system-wide unique name.
+     */
     @NotNull
     @Column(nullable = false)
     private String name;
 
-    /** Vehicle type when not linked to a specific vehicle. */
+    /**
+     * Vehicle type when not linked to a specific vehicle.
+     */
     private String vehicleType;
 
-    /** Manufacturer/brand of the part. */
+    /**
+     * Manufacturer/brand of the part.
+     */
     @NotNull
     private String brand;
 
@@ -63,17 +69,25 @@ public class VehiclePart {
     @OneToMany(mappedBy = "vehiclePart", fetch = FetchType.EAGER, orphanRemoval = true, cascade = CascadeType.ALL)
     private List<VehiclePartInventory> inventories = new ArrayList<>();
 
-    /** Model code or reference. */
+    /**
+     * Model code or reference.
+     */
     private String model;
 
-    /** Logical delete. */
+    /**
+     * Logical delete.
+     */
     @Column(nullable = false)
     private boolean isDeleted = false;
 
-    /** Long description of the part. */
+    /**
+     * Long description of the part.
+     */
     private String description;
 
-    /** Extra notes (maintenance, replacement interval, etc.). */
+    /**
+     * Extra notes (maintenance, replacement interval, etc.).
+     */
     private String notes;
 
     /* ---------- Audit fields ---------- */

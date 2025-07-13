@@ -6,15 +6,17 @@ import com.codeflow.toolflow.dto.tool.ToolResponse;
 import com.codeflow.toolflow.dto.tool.ToolSimpleResponse;
 import com.codeflow.toolflow.dto.tool.ToolStockRequest;
 import com.codeflow.toolflow.mapper.tool.ToolMapper;
+import com.codeflow.toolflow.persistence.loan.repository.LoanRepository;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
 import com.codeflow.toolflow.persistence.tool.entity.ToolInventory;
 import com.codeflow.toolflow.persistence.tool.repository.ToolRepository;
 import com.codeflow.toolflow.persistence.tool.repository.ToolSpecifications;
-import com.codeflow.toolflow.service.email.EmailService;
 import com.codeflow.toolflow.service.category.CategoryService;
+import com.codeflow.toolflow.service.email.EmailService;
 import com.codeflow.toolflow.service.headquarter.HeadquarterService;
 import com.codeflow.toolflow.service.tool.ToolService;
 import com.codeflow.toolflow.util.exception.ToolNotFoundException;
+import com.codeflow.toolflow.util.exception.ToolStillOnLoanException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,7 @@ public class ToolServiceImpl implements ToolService {
     private final ToolRepository toolRepository;
     private final CategoryService categoryService;
     private final HeadquarterService headquarterService;
+    private final LoanRepository loanRepository;             // 👈 nuevo
     private final ToolMapper toolMapper;
 
     @Value("${email.admin.from}")
@@ -139,6 +142,13 @@ public class ToolServiceImpl implements ToolService {
     @Override
     public void deleteOneTool(Long id) {
         Tool tool = findOneById(id);
+
+        if (loanRepository.existsActiveLoanByTool(id)) {
+            throw new ToolStillOnLoanException(
+                    "No se puede desactivar la herramienta; está asociada a préstamos en curso."
+            );
+        }
+
         tool.setStatus(false);
         tool.setUpdatedAt(LocalDateTime.now());
         tool.setUpdatedBy(getCurrentUserId());
@@ -342,8 +352,8 @@ public class ToolServiceImpl implements ToolService {
      * This method is used specifically for updating existing tools, ensuring
      * that all necessary fields are preserved and updated correctly.
      *
-     * @param request        the request object with input data
-     * @param existingTool   the existing tool entity to be updated
+     * @param request      the request object with input data
+     * @param existingTool the existing tool entity to be updated
      * @return the mapped {@link Tool} entity ready to be persisted
      */
     private Tool mapUpdateRequestToEntity(ToolRequest request, Tool existingTool) {
@@ -386,7 +396,7 @@ public class ToolServiceImpl implements ToolService {
      * Checks if the tool's total available stock (across all headquarters)
      * has dropped below the minimal threshold. If so, sends a warning email.
      *
-     * @param tool the tool being evaluated
+     * @param tool              the tool being evaluated
      * @param previousAvailable the total available before the update
      */
     private void checkAndNotifyLowStock(Tool tool, Integer previousAvailable) {
@@ -438,29 +448,22 @@ public class ToolServiceImpl implements ToolService {
 
 
     private String buildLowStockHtmlBody(Tool tool) {
-        StringBuilder html = new StringBuilder();
-        html.append("<html><body style='font-family:Arial,sans-serif;'>");
 
-        html.append("<h2 style='color:#d9534f;'>⚠️ Alerta de stock mínimo</h2>");
-
-        html.append("<p>La herramienta <strong>\"").append(tool.getToolName())
-                .append("\"</strong> ha alcanzado un <strong>nivel crítico de stock</strong>.</p>");
-
-        html.append("<table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse;margin-top:10px;'>")
-                .append("<thead><tr style='background-color:#f2f2f2;'>")
-                .append("<th>Herramienta</th><th>Disponible</th><th>Stock mínimo</th>")
-                .append("</tr></thead>")
-                .append("<tbody><tr>")
-                .append("<td>").append(tool.getToolName()).append("</td>")
-                .append("<td>").append(tool.getAvailable()).append("</td>")
-                .append("<td>").append(tool.getMinimalRegistration()).append("</td>")
-                .append("</tr></tbody></table>");
-
-        html.append("<p style='margin-top:20px;'>📦 Te recomendamos considerar la reposición de esta herramienta lo antes posible para evitar inconvenientes operativos.</p>");
-
-        html.append("<br><p style='font-size:small;color:gray;'>Este es un mensaje automático de ToolFlow. No responder directamente a este correo.</p>");
-        html.append("</body></html>");
-
-        return html.toString();
+        return "<html><body style='font-family:Arial,sans-serif;'>" +
+                "<h2 style='color:#d9534f;'>⚠️ Alerta de stock mínimo</h2>" +
+                "<p>La herramienta <strong>\"" + tool.getToolName() +
+                "\"</strong> ha alcanzado un <strong>nivel crítico de stock</strong>.</p>" +
+                "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse;margin-top:10px;'>" +
+                "<thead><tr style='background-color:#f2f2f2;'>" +
+                "<th>Herramienta</th><th>Disponible</th><th>Stock mínimo</th>" +
+                "</tr></thead>" +
+                "<tbody><tr>" +
+                "<td>" + tool.getToolName() + "</td>" +
+                "<td>" + tool.getAvailable() + "</td>" +
+                "<td>" + tool.getMinimalRegistration() + "</td>" +
+                "</tr></tbody></table>" +
+                "<p style='margin-top:20px;'>📦 Te recomendamos considerar la reposición de esta herramienta lo antes posible para evitar inconvenientes operativos.</p>" +
+                "<br><p style='font-size:small;color:gray;'>Este es un mensaje automático de ToolFlow. No responder directamente a este correo.</p>" +
+                "</body></html>";
     }
 }

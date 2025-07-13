@@ -10,7 +10,7 @@ public interface ToolInventoryRepository extends JpaRepository<ToolInventory, Lo
     /**
      * Finds an inventory record by the ID of the tool and the ID of the headquarter.
      *
-     * @param toolId The ID of the tool.
+     * @param toolId        The ID of the tool.
      * @param headquarterId The ID of the headquarter.
      * @return An Optional containing the found inventory record, or empty if not found.
      */
@@ -20,7 +20,7 @@ public interface ToolInventoryRepository extends JpaRepository<ToolInventory, Lo
      * Checks if there is an inventory record for a specific headquarter with available quantity greater than a specified amount.
      *
      * @param headquarterId The ID of the headquarter.
-     * @param quantity The minimum available quantity to check.
+     * @param quantity      The minimum available quantity to check.
      * @return true if such an inventory record exists, false otherwise.
      */
     boolean existsByHeadquarterIdAndAvailableGreaterThan(Long headquarterId, int quantity);
