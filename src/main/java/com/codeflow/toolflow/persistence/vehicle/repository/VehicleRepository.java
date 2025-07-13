@@ -46,12 +46,4 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findAllByHeadquarterId(Long headquarterId);
 
     boolean existsByHeadquarterId(Long headquarterId);
-
-    /**
-     * Finds all vehicles.
-     *
-     * @return A list of vehicles.
-     */
-    List<Vehicle> findAll();
-
 }

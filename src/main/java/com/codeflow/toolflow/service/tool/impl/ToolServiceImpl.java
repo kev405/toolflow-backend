@@ -449,7 +449,7 @@ public class ToolServiceImpl implements ToolService {
 
     private String buildLowStockHtmlBody(Tool tool) {
 
-        String html = "<html><body style='font-family:Arial,sans-serif;'>" +
+        return "<html><body style='font-family:Arial,sans-serif;'>" +
                 "<h2 style='color:#d9534f;'>⚠️ Alerta de stock mínimo</h2>" +
                 "<p>La herramienta <strong>\"" + tool.getToolName() +
                 "\"</strong> ha alcanzado un <strong>nivel crítico de stock</strong>.</p>" +
@@ -465,7 +465,5 @@ public class ToolServiceImpl implements ToolService {
                 "<p style='margin-top:20px;'>📦 Te recomendamos considerar la reposición de esta herramienta lo antes posible para evitar inconvenientes operativos.</p>" +
                 "<br><p style='font-size:small;color:gray;'>Este es un mensaje automático de ToolFlow. No responder directamente a este correo.</p>" +
                 "</body></html>";
-
-        return html;
     }
 }
