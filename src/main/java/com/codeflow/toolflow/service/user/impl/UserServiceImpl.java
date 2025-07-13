@@ -53,8 +53,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse registerOneUser(UserRequest userRequest) {
         if (userRepository.findByUsername(userRequest.getUsername()).isPresent()) {
-            throw new UserAlreadyExistsException("User already exists");
+            throw new UserAlreadyExistsException("El usuario ya existe");
         }
+
+        validateUniqueEmail(userRequest.getEmail(), null);
 
         isValidPassword(userRequest);
 
@@ -97,6 +99,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateOneUser(Long id, UserRequest userRequest) {
         User existingUser = findOneById(id);
+
+        validateUniqueEmail(userRequest.getEmail(), id);
+
         if (userRequest.getPassword() != null) {
             isValidPassword(userRequest);
         }
@@ -319,6 +324,7 @@ public class UserServiceImpl implements UserService {
             default -> "";
         };
     }
+
     /**
      * Retrieves a user by id or throws an exception if not found.
      *
@@ -342,5 +348,20 @@ public class UserServiceImpl implements UserService {
             return userDetails.getId();
         }
         throw new IllegalStateException("No authenticated user found.");
+    }
+
+    /**
+     * Validates that the provided email is unique, excluding the user with the specified ID.
+     *
+     * @param email         the email to validate
+     * @param excludeUserId the ID of the user to exclude from the uniqueness check
+     * @throws UserAlreadyExistsException if another user with the same email exists
+     */
+    private void validateUniqueEmail(String email, Long excludeUserId) {
+        userRepository.findByEmail(email)
+                .filter(u -> !u.getId().equals(excludeUserId))
+                .ifPresent(u -> {
+                    throw new UserAlreadyExistsException("El correo electrónico ya está en uso");
+                });
     }
 }

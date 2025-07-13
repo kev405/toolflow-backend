@@ -1,10 +1,11 @@
 package com.codeflow.toolflow.dto.transfer;
 
+import com.codeflow.toolflow.util.enums.TransferStatus;
 import lombok.Builder;
 import lombok.Data;
+
 import java.time.OffsetDateTime;
 import java.util.List;
-import com.codeflow.toolflow.util.enums.TransferStatus;
 
 @Data
 @Builder

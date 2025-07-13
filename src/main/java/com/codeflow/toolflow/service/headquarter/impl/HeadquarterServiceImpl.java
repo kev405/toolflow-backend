@@ -7,11 +7,13 @@ import com.codeflow.toolflow.mapper.headquarter.HeadquarterMapper;
 import com.codeflow.toolflow.persistence.headquarter.entity.Headquarter;
 import com.codeflow.toolflow.persistence.headquarter.repository.HeadquarterRepository;
 import com.codeflow.toolflow.persistence.tool.repository.ToolInventoryRepository;
+import com.codeflow.toolflow.persistence.transfer.repository.TransferRepository;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
 import com.codeflow.toolflow.persistence.vehicle.repository.VehicleRepository;
 import com.codeflow.toolflow.persistence.vehiclepart.repository.VehiclePartInventoryRepository;
 import com.codeflow.toolflow.service.headquarter.HeadquarterService;
+import com.codeflow.toolflow.util.enums.TransferStatus;
 import com.codeflow.toolflow.util.exception.AssociatedEntitiesExistException;
 import com.codeflow.toolflow.util.exception.MainHeadquarterDeletionException;
 import jakarta.persistence.EntityNotFoundException;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,6 +38,7 @@ public class HeadquarterServiceImpl implements HeadquarterService {
     private final VehicleRepository vehicleRepository;
     private final ToolInventoryRepository toolInventoryRepository;
     private final VehiclePartInventoryRepository vehiclePartInventoryRepository;
+    private final TransferRepository transferRepository;      // 👈 NUEVO
 
     @Override
     @Transactional
@@ -82,16 +86,34 @@ public class HeadquarterServiceImpl implements HeadquarterService {
             throw new MainHeadquarterDeletionException("No es posible eliminar la sede principal.");
         }
 
+        boolean hasPendingTransfers = transferRepository
+                .existsPendingTransferByHeadquarter(id, TransferStatus.PENDING);
+        if (hasPendingTransfers) {
+            throw new AssociatedEntitiesExistException(
+                    "No se puede eliminar la sede porque tiene traslados pendientes."
+            );
+        }
+
         boolean hasVehicles = vehicleRepository.existsByHeadquarterId(id);
         boolean hasToolsWithStock = toolInventoryRepository.existsByHeadquarterIdAndAvailableGreaterThan(id, 0);
         boolean hasVehiclePartsWithStock = vehiclePartInventoryRepository.existsByHeadquarterIdAndQuantityGreaterThan(id, 0);
 
-        if (hasVehicles || hasToolsWithStock || hasVehiclePartsWithStock) {
-            StringBuilder sb = new StringBuilder("No se puede eliminar la sede porque tiene entidades asociadas: ");
-            if (hasVehicles) sb.append("[Vehículos] ");
-            if (hasToolsWithStock) sb.append("[Herramientas con stock disponible] ");
-            if (hasVehiclePartsWithStock) sb.append("[Partes de vehículo con stock disponible] ");
-            throw new AssociatedEntitiesExistException(sb.toString().trim());
+        List<String> motivos = new ArrayList<>();
+        if (hasVehicles) {
+            motivos.add("vehículos registrados en la sede");
+        }
+        if (hasToolsWithStock) {
+            motivos.add("herramientas con stock disponible");
+        }
+        if (hasVehiclePartsWithStock) {
+            motivos.add("partes de vehículo con stock disponible");
+        }
+        if (!motivos.isEmpty()) {
+            String detalle =
+                    "No se puede eliminar la sede porque aún posee " +
+                            String.join(", ", motivos) + ".";
+
+            throw new AssociatedEntitiesExistException(detalle);
         }
 
         headquarter.setStatus(false);

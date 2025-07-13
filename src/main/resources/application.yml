@@ -6,10 +6,10 @@ spring:
       enabled: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL}
+    url: jdbc:postgresql://185.194.216.41:5432/toolflow
     # url: jdbc:postgresql://localhost:5432/toolflow
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    username: postgres
+    password: "othersecret"
     hikari:
       maxLifetime: 1800000
       maximum-pool-size: 10
@@ -35,17 +35,17 @@ spring:
     open-in-view: false
 
   mail:
-    host: smtpout.secureserver.net
+    host: smtp.office365.com
     port: 587
-    username: ${SMTP_USERNAME}
-    password: ${SMTP_PASSWORD}
+    username: codeflow@toolflow.com.co
+    password: mivcnegabcrjddvx
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-    from: ${SMTP_USERNAME}
+    from: main.toolflow@gmail.com
 
 server:
   port: 9009
@@ -62,4 +62,4 @@ logging:
 
 email:
   admin:
-    from: ${SMTP_USERNAME}
+    from: main.toolflow@gmail.com

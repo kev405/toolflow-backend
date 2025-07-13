@@ -22,6 +22,7 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
     /**
      * Finds a non-deleted part by its ID, explicitly fetching all related
      * inventory and headquarter data in a single query to prevent lazy loading issues.
+     *
      * @param id The ID of the part.
      * @return An Optional containing the fully initialized part if found and not deleted.
      */
@@ -44,10 +45,10 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
      * Finds a paginated list of non-deleted vehicle parts based on optional filter criteria.
      * This query joins with the inventory to filter by vehicle and headquarter.
      *
-     * @param namePattern Optional filter for the part's name (case-insensitive, partial match).
-     * @param vehicleId Optional filter for the associated vehicle's ID.
+     * @param namePattern   Optional filter for the part's name (case-insensitive, partial match).
+     * @param vehicleId     Optional filter for the associated vehicle's ID.
      * @param headquarterId Optional filter for the headquarter's ID where the part is stocked.
-     * @param pageable Pagination and sorting information.
+     * @param pageable      Pagination and sorting information.
      * @return A page of distinct {@link VehiclePart} entities matching the criteria.
      */
     @Query("SELECT DISTINCT vp FROM VehiclePart vp " +
@@ -69,6 +70,7 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
     /**
      * Finds all inventory for parts that are not associated with a specific vehicle
      * and have available stock.
+     *
      * @return A list of vehicle part inventory records.
      */
     @Query("SELECT vp FROM VehiclePart vp " +

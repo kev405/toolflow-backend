@@ -20,7 +20,7 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
      *
      * @param vehiclePartId The ID of the vehicle part.
      * @param headquarterId The ID of the headquarter.
-     * @param vehicleId The ID of the associated vehicle.
+     * @param vehicleId     The ID of the associated vehicle.
      * @return An Optional containing the inventory record if found.
      */
     Optional<VehiclePartInventory> findByVehiclePartIdAndHeadquarterIdAndVehicle(Long vehiclePartId, Long headquarterId, Long vehicleId);
@@ -62,6 +62,7 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
     /**
      * Finds all inventory for parts that are not associated with a specific vehicle
      * and have available stock at a given headquarter.
+     *
      * @param headquarterId The ID of the headquarter.
      * @return A list of vehicle part inventory records.
      */
@@ -75,6 +76,7 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
     /**
      * Finds all inventory for parts that are not associated with a specific vehicle
      * and have available stock at a given headquarter.
+     *
      * @param headquarterId The ID of the headquarter.
      * @param vehiclePartId The ID of the vehicle part.
      * @return A list of vehicle part inventory records.
@@ -93,7 +95,7 @@ public interface VehiclePartInventoryRepository extends JpaRepository<VehiclePar
      * Checks if there is an inventory record for a specific headquarter with available quantity greater than a specified amount.
      *
      * @param headquarterId The ID of the headquarter.
-     * @param quantity The minimum available quantity to check.
+     * @param quantity      The minimum available quantity to check.
      * @return true if such an inventory record exists, false otherwise.
      */
     boolean existsByHeadquarterIdAndQuantityGreaterThan(Long headquarterId, int quantity);

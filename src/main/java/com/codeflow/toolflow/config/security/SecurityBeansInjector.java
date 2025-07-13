@@ -3,7 +3,6 @@ package com.codeflow.toolflow.config.security;
 import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
 import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
-import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

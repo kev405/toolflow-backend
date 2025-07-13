@@ -118,7 +118,7 @@ public class GlobalExceptionHandler {
         apiError.setUrl(request.getRequestURL().toString());
         apiError.setMethod(request.getMethod());
         apiError.setTimestamp(LocalDateTime.now());
-        apiError.setMessage("El usuario ya existe");
+        apiError.setMessage(exception.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
     }
@@ -253,6 +253,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleAssociatedEntitiesExistException(
             HttpServletRequest request,
             AssociatedEntitiesExistException exception) {
+
+        ApiError apiError = ApiError.builder()
+                .message(exception.getMessage())
+                .backendMessage(exception.getLocalizedMessage())
+                .url(request.getRequestURL().toString())
+                .method(request.getMethod())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(apiError);
+    }
+
+    @ExceptionHandler(ToolStillOnLoanException.class)
+    public ResponseEntity<ApiError> handleToolStillOnLoanException(
+            HttpServletRequest request,
+            ToolStillOnLoanException exception) {
 
         ApiError apiError = ApiError.builder()
                 .message(exception.getMessage())
