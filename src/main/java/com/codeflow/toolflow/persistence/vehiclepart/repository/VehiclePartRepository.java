@@ -33,15 +33,6 @@ public interface VehiclePartRepository extends JpaRepository<VehiclePart, Long> 
     Optional<VehiclePart> findByIdAndIsDeletedFalse(@Param("id") Long id);
 
     /**
-     * Checks if a non-deleted vehicle part with the given name and association status already exists.
-     * This is used to enforce the composite unique constraint before attempting to save a new entity.
-     *
-     * @param name The name of the vehicle part.
-     * @return true if a matching part exists, false otherwise.
-     */
-    boolean existsByNameAndIsDeletedFalse(String name);
-
-    /**
      * Finds a paginated list of non-deleted vehicle parts based on optional filter criteria.
      * This query joins with the inventory to filter by vehicle and headquarter.
      *
