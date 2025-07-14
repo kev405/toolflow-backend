@@ -37,6 +37,8 @@ public class VehicleController {
     @Autowired
     private VehicleService vehicleService;
 
+    private final String autorizeRol = "hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR')";
+
     @Operation(summary = "Get available vehicles for transfer",
             description = "Returns a list of all vehicles currently assigned to a specific origin headquarter, making them available for a transfer operation.")
     @ApiResponses({
@@ -53,7 +55,7 @@ public class VehicleController {
                             schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/available-for-transfer") // URL específica para claridad
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<List<TransferableVehicleResponse>> getAvailableVehicles(
             @Parameter(description = "ID of the origin headquarter to list vehicles from.", required = true)
             @RequestParam Long headquarterId) {
@@ -70,14 +72,14 @@ public class VehicleController {
             @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role.")
     })
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<List<TransferableVehicleResponse>> getllVehicles() {
         return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
 
     @GetMapping(path = "/findBy")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     @Operation(
             summary = "Search vehicles",
             description = "Returns a paginated list of vehicles filtered by any combination of query parameters."
@@ -109,7 +111,7 @@ public class VehicleController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     @Operation(
             summary = "Register a new vehicle",
             description = "Creates a new vehicle with the supplied attributes.",
@@ -137,7 +139,7 @@ public class VehicleController {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     @Operation(
             summary = "Update an existing vehicle",
             description = "Modifies an existing vehicle identified by its ID.",
@@ -161,7 +163,7 @@ public class VehicleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     @Operation(
             summary = "Delete a vehicle",
             description = "Performs a delete: the vehicle is removing.",
@@ -183,7 +185,7 @@ public class VehicleController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     @Operation(
             summary = "Retrieve a vehicle by ID",
             description = "Returns the vehicle with the specified ID.",

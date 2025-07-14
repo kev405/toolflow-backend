@@ -29,6 +29,8 @@ public class VehiclePartController {
 
     private final VehiclePartService vehiclePartService;
 
+    private final String autorizeRol = "hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR')";
+
     @Operation(summary = "Create a new vehicle part and its initial stock",
             description = "Registers a new part and creates its first inventory record in one transaction.")
     @ApiResponses({
@@ -38,7 +40,7 @@ public class VehiclePartController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<VehiclePartResponse> createPart(@Valid @RequestBody VehiclePartRequest request) {
         VehiclePartResponse response = vehiclePartService.createVehiclePartAndInventory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -60,7 +62,7 @@ public class VehiclePartController {
                             schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/available-for-transfer")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<List<TransferablePartVehicleResponse>> getAvailableVehicleParts(
             @Parameter(description = "ID of the origin headquarter to check for available stock.", required = true)
             @RequestParam Long headquarterId) {
@@ -77,7 +79,7 @@ public class VehiclePartController {
             @ApiResponse(responseCode = "403", description = "Forbidden - User does not have the 'ADMINISTRATOR' role.")
     })
     @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<List<TransferablePartVehicleResponse>> getAllVehicleParts() {
         return ResponseEntity.ok(vehiclePartService.getAllVehicleParts());
     }
@@ -85,7 +87,7 @@ public class VehiclePartController {
     @Operation(summary = "Get a paginated list of vehicle parts",
             description = "Retrieves vehicle parts with optional filters for name, vehicle, and headquarter.")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public Page<VehiclePartResponse> getParts(
             @Parameter(description = "Filter by part name") @RequestParam(required = false) String name,
             @Parameter(description = "Filter by part model") @RequestParam(required = false) String model,
@@ -104,7 +106,7 @@ public class VehiclePartController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<VehiclePartResponse> getPartById(@PathVariable Long id) {
         return ResponseEntity.ok(vehiclePartService.getVehiclePartById(id));
     }
@@ -118,7 +120,7 @@ public class VehiclePartController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<VehiclePartResponse> updatePart(@PathVariable Long id, @Valid @RequestBody
     VehiclePartUpdateRequest request) {
         return ResponseEntity.ok(vehiclePartService.updateVehiclePart(id, request));
@@ -131,7 +133,7 @@ public class VehiclePartController {
             @ApiResponse(responseCode = "404", description = "Part not found")
     })
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<Void> deletePart(@PathVariable Long id) {
         vehiclePartService.deleteVehiclePart(id);
         return ResponseEntity.noContent().build();
@@ -145,7 +147,7 @@ public class VehiclePartController {
             @ApiResponse(responseCode = "404", description = "Part, headquarter, or source inventory not found")
     })
     @PutMapping("/{partId}/headquarters/{headquarterId}/association")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<Void> moveInventoryAssociation(
             @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,
             @Parameter(description = "ID of the headquarter where inventory is located") @PathVariable Long headquarterId,
@@ -162,7 +164,7 @@ public class VehiclePartController {
             @ApiResponse(responseCode = "404", description = "Inventory record not found")
     })
     @PutMapping("/{partId}/headquarters/{headquarterId}/stock")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<Void> updatePartStock(
             @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,
             @Parameter(description = "ID of the headquarter") @PathVariable Long headquarterId,

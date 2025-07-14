@@ -33,10 +33,12 @@ public class TransferController {
 
     private final TransferService transferService;
 
+    private final String autorizeRol = "hasAnyRole('ADMINISTRATOR', 'TOOL_ADMINISTRATOR')";
+
     @Operation(summary = "Get a paginated list of transfers with dynamic filters",
             description = "Retrieves transfers based on a combination of optional filters. Multi-select filters accept comma-separated values.")
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<Page<TransferResponse>> getAllTransfers(
             @Parameter(description = "Filter by origin headquarter ID") @RequestParam(required = false) Long originId,
             @Parameter(description = "Filter by destination headquarter ID") @RequestParam(required = false) Long destinationId,
@@ -61,7 +63,7 @@ public class TransferController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<TransferResponse> createTransfer(@Valid @RequestBody TransferRequest request) {
         TransferResponse response = transferService.createTransfer(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -78,7 +80,7 @@ public class TransferController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<TransferResponse> updateTransfer(
             @Parameter(description = "ID of the transfer to update") @PathVariable Long id,
             @Valid @RequestBody TransferRequest request) {
@@ -89,7 +91,7 @@ public class TransferController {
 //    @Operation(summary = "Get a paginated list of transfers",
 //            description = "Retrieves a list of all transfers, sorted and paginated.")
 //    @GetMapping
-//    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+//    @PreAuthorize(autorizeRol)
 //    public Page<TransferResponse> getAllTransfers(Pageable pageable) {
 //        return transferService.getAllTransfers(pageable);
 //    }
@@ -102,7 +104,7 @@ public class TransferController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<TransferResponse> getTransferById(@Parameter(description = "ID of the transfer to retrieve") @PathVariable Long id) {
         return ResponseEntity.ok(transferService.getTransferById(id));
     }
@@ -117,7 +119,7 @@ public class TransferController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PutMapping("/{id}/accept")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<TransferResponse> acceptTransfer(@Parameter(description = "ID of the transfer to accept") @PathVariable Long id) {
         TransferResponse response = transferService.acceptTransfer(id);
         return ResponseEntity.ok(response);
@@ -133,7 +135,7 @@ public class TransferController {
                     content = @Content(schema = @Schema(implementation = ApiError.class)))
     })
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyRole('ADMINISTRATOR')")
+    @PreAuthorize(autorizeRol)
     public ResponseEntity<TransferResponse> cancelTransfer(@Parameter(description = "ID of the transfer to cancel") @PathVariable Long id) {
         TransferResponse response = transferService.cancelTransfer(id);
         return ResponseEntity.ok(response);
