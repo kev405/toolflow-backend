@@ -83,6 +83,27 @@ public interface TransferMapper {
     @Mapping(source = "status", target = "transferStatus")
     TransferResponse toResponse(Transfer entity);
 
+    @Mapping(source = "responsible.id", target = "responsibleId")
+    @Mapping(source = "originHeadquarter.id", target = "originHeadquarterId")
+    @Mapping(source = "destinationHeadquarter.id", target = "destinationHeadquarterId")
+    @Mapping(source = "tools", target = "tools")
+    @Mapping(source = "vehicleParts", target = "vehicleParts")
+    @Mapping(source = "vehicles", target = "vehicles")
+    TransferRequest toRequest(Transfer entity);
+
+    @Mapping(source = "tool.id", target = "toolId")
+    TransferRequest.ToolItem toToolItem(TransferTool transferTool);
+
+    @Mapping(source = "vehiclePart.id", target = "partId")
+    TransferRequest.PartItem toPartItem(TransferVehiclePart transferVehiclePart);
+
+    default List<Long> mapVehiclesToIds(List<TransferVehicle> transferVehicles) {
+        if (transferVehicles == null) return null;
+        return transferVehicles.stream()
+                .map(tv -> tv.getVehicle().getId())
+                .collect(Collectors.toList());
+    }
+
     default TransferResponse.UserSummary userToSummary(User user) {
         if (user == null) return null;
         return TransferResponse.UserSummary.builder().id(user.getId()).username(user.getUsername()).build();

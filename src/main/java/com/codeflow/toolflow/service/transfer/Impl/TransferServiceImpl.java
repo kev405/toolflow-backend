@@ -97,8 +97,6 @@ public class TransferServiceImpl implements TransferService {
         return transferMapper.toResponse(savedTransfer);
     }
 
-    // Añade este método completo a tu clase TransferServiceImpl.java
-
     /**
      * {@inheritDoc}
      */
@@ -176,6 +174,10 @@ public class TransferServiceImpl implements TransferService {
         if (transfer.getStatus() != TransferStatus.PENDING) {
             throw new IllegalStateException("Only PENDING transfers can be accepted. Current status: " + transfer.getStatus());
         }
+
+        TransferRequest request = transferMapper.toRequest(transfer);
+
+        validateStockAndOwnership(request);
 
         processVehicleTransfers(transfer);
         processToolTransfers(transfer);
