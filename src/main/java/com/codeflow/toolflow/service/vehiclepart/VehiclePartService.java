@@ -1,9 +1,10 @@
 package com.codeflow.toolflow.service.vehiclepart;
 
-import java.util.List;
 import com.codeflow.toolflow.dto.vehiclepart.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface VehiclePartService {
 
@@ -31,7 +32,7 @@ public interface VehiclePartService {
      * Updates the core details of an existing vehicle part.
      * This method does not modify inventory stock.
      *
-     * @param id The ID of the vehicle part to update.
+     * @param id      The ID of the vehicle part to update.
      * @param request DTO with the updated data.
      * @return the updated {@link VehiclePartResponse}.
      */
@@ -40,12 +41,11 @@ public interface VehiclePartService {
     /**
      * Updates the inventory stock for a specific part at a specific headquarter.
      *
-     * @param partId The ID of the vehicle part.
+     * @param partId        The ID of the vehicle part.
      * @param headquarterId The ID of the headquarter where the stock is located.
-     * @param VehicleAssocietedId The ID of the vehicle associated with the part, if applicable.
-     * @param request DTO containing the new quantity.
+     * @param request       DTO containing the new quantity.
      */
-    void updateStock(Long partId, Long headquarterId, Long VehicleAssocietedId, UpdateStockRequest request);
+    void updateStock(Long partId, Long headquarterId, UpdateStockRequest request);
 
     /**
      * Retrieves a single vehicle part by its unique identifier.
@@ -65,10 +65,10 @@ public interface VehiclePartService {
     /**
      * Retrieves a paginated and filtered list of vehicle parts.
      *
-     * @param name Filter by the part's unique name (can be partial match).
-     * @param vehicleId Filter by the ID of the associated vehicle.
+     * @param name          Filter by the part's unique name (can be partial match).
+     * @param vehicleId     Filter by the ID of the associated vehicle.
      * @param headquarterId Filter by the ID of the headquarter where the part is stocked.
-     * @param pageable Pagination and sorting information.
+     * @param pageable      Pagination and sorting information.
      * @return A {@link Page} of {@link VehiclePartResponse} matching the criteria.
      */
     Page<VehiclePartResponse> getPage(String name, String brand, String model, Long vehicleId, Long headquarterId, Pageable pageable);

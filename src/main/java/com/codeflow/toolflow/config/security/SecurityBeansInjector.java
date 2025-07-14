@@ -3,7 +3,6 @@ package com.codeflow.toolflow.config.security;
 import com.codeflow.toolflow.dto.auth.UserLogin;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
 import com.codeflow.toolflow.persistence.user.repository.UserRoleRepository;
-import com.codeflow.toolflow.util.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,20 +44,14 @@ public class SecurityBeansInjector {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return (username) -> {
-            return userRepository.findByUsername(username).map(user -> {
-                        UserLogin userLogin = UserLogin.builder()
-                                .id(user.getId())
-                                .name(user.getName())
-                                .username(user.getUsername())
-                                .password(user.getPassword())
-                                .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
-                                .build();
-
-                        return userLogin;
-                    })
-                    .orElseThrow(() -> new UsernameNotFoundException("Credenciales inválidas. Verifica tu usuario y contraseña."));
-        };
+        return (username) -> userRepository.findByUsername(username).map(user -> UserLogin.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .roles(userRoleRepository.findByToolflowUser(user).stream().map(userRole -> userRole.getRole().getEnumKey()).toList())
+                .build())
+                .orElseThrow(() -> new UsernameNotFoundException("Credenciales inválidas. Verifica tu usuario y contraseña."));
     }
 
 }

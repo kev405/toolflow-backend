@@ -49,4 +49,18 @@ public interface LoanRepository extends JpaRepository<Loan, Long>, JpaSpecificat
             @Param("toolIds") List<Long> toolIds,
             Pageable pageable
     );
+
+    @Query("""
+                SELECT COUNT(lt) > 0
+                FROM LoanTool lt
+                WHERE lt.tool.id = :toolId
+                  AND lt.loan.loanStatus NOT IN (
+                        com.codeflow.toolflow.util.enums.LoanStatus.CANCELLED,
+                        com.codeflow.toolflow.util.enums.LoanStatus.FINALIZED,
+                        com.codeflow.toolflow.util.enums.LoanStatus.MISSING_FINALIZED,
+                        com.codeflow.toolflow.util.enums.LoanStatus.DAMAGED_FINALIZED,
+                        com.codeflow.toolflow.util.enums.LoanStatus.MISSING_AND_DAMAGED_FINALIZED
+                  )
+            """)
+    boolean existsActiveLoanByTool(@Param("toolId") Long toolId);
 }

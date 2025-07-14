@@ -10,7 +10,10 @@ import com.codeflow.toolflow.persistence.tool.entity.Tool;
 import com.codeflow.toolflow.persistence.tool.entity.ToolInventory;
 import com.codeflow.toolflow.persistence.tool.repository.ToolInventoryRepository;
 import com.codeflow.toolflow.persistence.tool.repository.ToolRepository;
-import com.codeflow.toolflow.persistence.transfer.entity.*;
+import com.codeflow.toolflow.persistence.transfer.entity.Transfer;
+import com.codeflow.toolflow.persistence.transfer.entity.TransferTool;
+import com.codeflow.toolflow.persistence.transfer.entity.TransferVehicle;
+import com.codeflow.toolflow.persistence.transfer.entity.TransferVehiclePart;
 import com.codeflow.toolflow.persistence.transfer.repository.TransferRepository;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
@@ -348,7 +351,7 @@ public class TransferServiceImpl implements TransferService {
             vehicleRepository.save(vehicle);
 
             List<VehiclePartInventory> associatedPartsInventory = vehiclePartInventoryRepository.findAllByVehicle(vehicle.getId());
-            for(VehiclePartInventory partInventory : associatedPartsInventory) {
+            for (VehiclePartInventory partInventory : associatedPartsInventory) {
                 partInventory.setHeadquarter(destination);
                 vehiclePartInventoryRepository.save(partInventory);
             }

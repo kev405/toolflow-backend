@@ -63,7 +63,7 @@ public interface HeadquarterService {
     /**
      * Gets a paginated list of headquarters with optional filtering.
      *
-     * @param pageable      pagination info
+     * @param pageable pagination info
      * @return a page of {@link HeadquarterResponse}
      */
     Page<HeadquarterResponse> getPage(Pageable pageable);

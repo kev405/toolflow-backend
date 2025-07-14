@@ -1,6 +1,6 @@
 package com.codeflow.toolflow.persistence.transfer.entity;
 
-import com.codeflow.toolflow.persistence.tool.entity.Tool; // Assuming this entity exists
+import com.codeflow.toolflow.persistence.tool.entity.Tool;
 import jakarta.persistence.*;
 import lombok.Data;
 

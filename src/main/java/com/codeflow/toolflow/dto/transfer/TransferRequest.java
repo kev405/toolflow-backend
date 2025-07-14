@@ -1,5 +1,6 @@
 package com.codeflow.toolflow.dto.transfer;
 
+import com.codeflow.toolflow.dto.transfer.validation.AtLeastOneItemRequired;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -7,7 +8,6 @@ import lombok.Data;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import com.codeflow.toolflow.dto.transfer.validation.AtLeastOneItemRequired;
 
 @Data
 @AtLeastOneItemRequired

@@ -44,14 +44,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VehiclePartServiceImpl implements VehiclePartService {
 
+    private static final String VEHICLE_PART_NOT_FOUND = "VehiclePart not found with ID: ";
+    private static final String INVENTORY_NOT_FOUND = "Inventory record not found for part ";
     private final VehiclePartRepository vehiclePartRepository;
     private final VehiclePartInventoryRepository inventoryRepository;
     private final VehicleRepository vehicleRepository;
     private final HeadquarterService headquarterService;
     private final VehiclePartMapper vehiclePartMapper;
-
-    private static final String VEHICLE_PART_NOT_FOUND = "VehiclePart not found with ID: ";
-    private static final String INVENTORY_NOT_FOUND = "Inventory record not found for part ";
 
     /**
      * {@inheritDoc}
@@ -80,7 +79,7 @@ public class VehiclePartServiceImpl implements VehiclePartService {
      * It also synchronizes the bidirectional relationship by adding the new inventory
      * to the part's collection.
      *
-     * @param request The DTO containing inventory details.
+     * @param request     The DTO containing inventory details.
      * @param vehiclePart The parent entity to which the inventory will be added.
      */
     public void createInventoryForVehiclePart(VehiclePartRequest request, VehiclePart vehiclePart) {
@@ -97,7 +96,7 @@ public class VehiclePartServiceImpl implements VehiclePartService {
             // If creating a generic inventory, check if one already exists for this part in the main headquarter.
             // This logic might need adjustment based on business rules (e.g., can a part have generic stock in multiple HQs?).
             Headquarter mainHeadquarter = headquarterService.getMainHeadquarter();
-            if(inventoryRepository.findByVehiclePartIdAndHeadquarterId(vehiclePart.getId(), mainHeadquarter.getId()).isPresent()){
+            if (inventoryRepository.findByVehiclePartIdAndHeadquarterId(vehiclePart.getId(), mainHeadquarter.getId()).isPresent()) {
                 throw new DataIntegrityViolationException(
                         "A generic inventory record for part '" + vehiclePart.getName() + "' already exists in the main headquarter."
                 );
@@ -156,9 +155,9 @@ public class VehiclePartServiceImpl implements VehiclePartService {
      * This method moves a specified quantity of a part from a source association (generic or vehicle)
      * to a destination association within the same headquarter.
      *
-     * @param partId The ID of the vehicle part being moved.
+     * @param partId        The ID of the vehicle part being moved.
      * @param headquarterId The ID of the headquarter where the transaction occurs.
-     * @param request The DTO containing source, destination, and quantity details.
+     * @param request       The DTO containing source, destination, and quantity details.
      */
     @Override
     @Transactional
@@ -235,7 +234,7 @@ public class VehiclePartServiceImpl implements VehiclePartService {
                 .orElseThrow(() -> new EntityNotFoundException(INVENTORY_NOT_FOUND + partId + " at headquarter "
                         + headquarterId + (VehicleAssocietedId != null ? " for vehicle " + VehicleAssocietedId : "")));
 
-        if(inventory.getVehiclePart().isDeleted()){
+        if (inventory.getVehiclePart().isDeleted()) {
             throw new IllegalStateException("Cannot update stock for a deleted part with ID: " + partId);
         }
 

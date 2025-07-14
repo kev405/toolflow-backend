@@ -12,6 +12,7 @@ public interface LoanToolService {
 
     /**
      * Updates the list of tools associated with a given loan.
+     *
      * @param loan         the loan entity being updated
      * @param updatedTools the list of tool modifications requested
      * @param isAdmin      whether the current user has administrative privileges

@@ -94,17 +94,25 @@ public class VehiclePartInventory {
 
     /* ---------- Audit fields ---------- */
 
-    /** User ID that created the record. */
+    /**
+     * User ID that created the record.
+     */
     private Long createdBy;
 
-    /** Timestamp when the record was created (set automatically). */
+    /**
+     * Timestamp when the record was created (set automatically).
+     */
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    /** User ID that last modified the record. */
+    /**
+     * User ID that last modified the record.
+     */
     private Long updatedBy;
 
-    /** Timestamp of the last modification (updated automatically). */
+    /**
+     * Timestamp of the last modification (updated automatically).
+     */
     private LocalDateTime updatedAt;
 
     /* ---------- Lifecycle callbacks ---------- */
