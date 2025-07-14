@@ -229,9 +229,10 @@ public class VehiclePartServiceImpl implements VehiclePartService {
      */
     @Override
     @Transactional
-    public void updateStock(Long partId, Long headquarterId, UpdateStockRequest request) {
-        VehiclePartInventory inventory = inventoryRepository.findByVehiclePartIdAndHeadquarterId(partId, headquarterId)
-                .orElseThrow(() -> new EntityNotFoundException(INVENTORY_NOT_FOUND + partId + " at headquarter " + headquarterId));
+    public void updateStock(Long partId, Long headquarterId, Long VehicleAssocietedId, UpdateStockRequest request) {
+        VehiclePartInventory inventory = inventoryRepository.findByVehiclePartIdAndHeadquarterIdAndVehicle(partId, headquarterId, VehicleAssocietedId)
+                .orElseThrow(() -> new EntityNotFoundException(INVENTORY_NOT_FOUND + partId + " at headquarter "
+                        + headquarterId + (VehicleAssocietedId != null ? " for vehicle " + VehicleAssocietedId : "")));
 
         if (inventory.getVehiclePart().isDeleted()) {
             throw new IllegalStateException("Cannot update stock for a deleted part with ID: " + partId);

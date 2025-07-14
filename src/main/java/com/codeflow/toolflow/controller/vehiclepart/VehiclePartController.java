@@ -166,8 +166,9 @@ public class VehiclePartController {
     public ResponseEntity<Void> updatePartStock(
             @Parameter(description = "ID of the vehicle part") @PathVariable Long partId,
             @Parameter(description = "ID of the headquarter") @PathVariable Long headquarterId,
+            @Parameter(description = "ID of the VehicleAssociatedId") @RequestParam(required = false) Long VehicleAssociatedId,
             @Valid @RequestBody UpdateStockRequest request) {
-        vehiclePartService.updateStock(partId, headquarterId, request);
+        vehiclePartService.updateStock(partId, headquarterId, VehicleAssociatedId, request);
         return ResponseEntity.noContent().build();
     }
 }

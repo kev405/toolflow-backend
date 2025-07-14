@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 })
 public interface TransferMapper {
 
-    // --- To Entity Mappings ---
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "responsible", ignore = true)
     @Mapping(target = "originHeadquarter", ignore = true)
@@ -75,8 +73,6 @@ public interface TransferMapper {
             return tv;
         }).collect(Collectors.toList());
     }
-
-    // --- To Response Mappings ---
 
     @Mapping(source = "responsible", target = "responsible")
     @Mapping(source = "originHeadquarter", target = "originHeadquarter")
