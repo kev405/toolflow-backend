@@ -42,9 +42,10 @@ public interface VehiclePartService {
      *
      * @param partId The ID of the vehicle part.
      * @param headquarterId The ID of the headquarter where the stock is located.
+     * @param VehicleAssocietedId The ID of the vehicle associated with the part, if applicable.
      * @param request DTO containing the new quantity.
      */
-    void updateStock(Long partId, Long headquarterId, UpdateStockRequest request);
+    void updateStock(Long partId, Long headquarterId, Long VehicleAssocietedId, UpdateStockRequest request);
 
     /**
      * Retrieves a single vehicle part by its unique identifier.
