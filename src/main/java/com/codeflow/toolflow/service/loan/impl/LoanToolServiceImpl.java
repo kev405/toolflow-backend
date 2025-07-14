@@ -32,7 +32,11 @@ public class LoanToolServiceImpl implements LoanToolService {
     private final HeadquarterServiceImpl headquarterService;
 
     @Override
-    public void updateToolsForLoan(Loan loan, List<LoanToolRequest> updatedTools, boolean isAdmin, boolean isAllowPartialEdit) {
+    public void updateToolsForLoan(Loan loan,
+                                   List<LoanToolRequest> updatedTools,
+                                   boolean isAdmin,
+                                   boolean isAllowPartialEdit) {
+
         Map<Long, LoanToolRequest> incomingMap = updatedTools.stream()
                 .collect(Collectors.toMap(LoanToolRequest::getId, Function.identity()));
 
@@ -45,7 +49,10 @@ public class LoanToolServiceImpl implements LoanToolService {
             ToolInventory inventory = toolEntity.getInventories().stream()
                     .filter(inv -> inv.getHeadquarter().equals(headquarterService.getMainHeadquarter()))
                     .findFirst()
-                    .orElseThrow(() -> new EntityNotFoundException("Inventory not found for tool: " + toolEntity.getId()));
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Inventory not found for tool: " + toolEntity.getId()));
+
+            boolean isConsumable = Boolean.TRUE.equals(toolEntity.getConsumable());
 
             LoanTool existing = currentTools.stream()
                     .filter(t -> t.getTool().getId().equals(toolReq.getId()))
@@ -57,43 +64,91 @@ public class LoanToolServiceImpl implements LoanToolService {
                     : null;
 
             if (existing != null) {
-                int oldLoaned = existing.getLoaned();
-                int newLoaned = isAdmin ? Optional.ofNullable(toolReq.getLoaned()).orElse(oldLoaned) : oldLoaned;
+                int oldLoaned    = existing.getLoaned();
+                int newLoaned    = isAdmin ? Optional.ofNullable(toolReq.getLoaned()).orElse(oldLoaned) : oldLoaned;
 
                 int oldDelivered = existing.getDelivered();
                 int newDelivered = isAdmin ? Optional.ofNullable(toolReq.getDelivered()).orElse(oldDelivered) : oldDelivered;
 
-                int oldDamaged = existing.getDamaged();
-                int newDamaged = isAdmin ? Optional.ofNullable(toolReq.getDamaged()).orElse(oldDamaged) : oldDamaged;
+                int oldDamaged   = existing.getDamaged();
+                int newDamaged   = isAdmin ? Optional.ofNullable(toolReq.getDamaged()).orElse(oldDamaged) : oldDamaged;
 
-                if (isAdmin && !toolEntity.getConsumable()) {
-                    boolean changed = false;
-                    int updatedAvailable = inventory.getAvailable();
-                    int updatedOnLoan = inventory.getOnLoan();
-                    int updatedDamaged = inventory.getDamaged();
-
-                    if (newLoaned != oldLoaned) {
+                if (isAdmin) {
+                    if (isConsumable) {
                         int deltaLoaned = newLoaned - oldLoaned;
-                        updatedAvailable -= deltaLoaned;
-                        updatedOnLoan += deltaLoaned;
-                        changed = true;
-                    }
+                        if (deltaLoaned != 0) {
+                            int updatedAvailable = inventory.getAvailable() - deltaLoaned;
 
-                    if (newDelivered != oldDelivered) {
-                        int deltaDelivered = newDelivered - oldDelivered;
-                        updatedAvailable += deltaDelivered;
-                        updatedOnLoan -= deltaDelivered;
-                        changed = true;
-                    }
+                            toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
+                                    .available(Math.max(updatedAvailable, 0))
+                                    .onLoan(inventory.getOnLoan())
+                                    .damaged(inventory.getDamaged())
+                                    .build());
+                        }
+                    } else {
+                        boolean changed = false;
+                        int updatedAvailable = inventory.getAvailable();
+                        int updatedOnLoan    = inventory.getOnLoan();
+                        int updatedDamaged   = inventory.getDamaged();
 
-                    if (newDamaged != oldDamaged) {
-                        int deltaDamaged = newDamaged - oldDamaged;
-                        updatedAvailable -= deltaDamaged;
-                        updatedDamaged += deltaDamaged;
-                        changed = true;
+                        if (newLoaned != oldLoaned) {
+                            int deltaLoaned = newLoaned - oldLoaned;
+                            updatedAvailable -= deltaLoaned;
+                            updatedOnLoan    += deltaLoaned;
+                            changed = true;
+                        }
+                        if (newDelivered != oldDelivered) {
+                            int deltaDelivered = newDelivered - oldDelivered;
+                            updatedAvailable += deltaDelivered;
+                            updatedOnLoan    -= deltaDelivered;
+                            changed = true;
+                        }
+                        if (newDamaged != oldDamaged) {
+                            int deltaDamaged = newDamaged - oldDamaged;
+                            updatedAvailable -= deltaDamaged;
+                            updatedDamaged   += deltaDamaged;
+                            changed = true;
+                        }
+                        if (changed) {
+                            toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
+                                    .available(Math.max(updatedAvailable, 0))
+                                    .onLoan(Math.max(updatedOnLoan, 0))
+                                    .damaged(Math.max(updatedDamaged, 0))
+                                    .build());
+                        }
                     }
+                }
+                existing.setRequested(toolReq.getRequested());
+                existing.setNotes(toolReq.getNotes());
+                existing.setResponsible(responsible);
 
-                    if (changed) {
+                if (isAdmin) {
+                    existing.setLoaned(newLoaned);
+                    existing.setDelivered(newDelivered);
+                    existing.setDamaged(newDamaged);
+                }
+            }
+
+            else {
+                int loaned    = isAdmin ? Optional.ofNullable(toolReq.getLoaned()).orElse(0) : 0;
+                int delivered = isAdmin ? Optional.ofNullable(toolReq.getDelivered()).orElse(0) : 0;
+                int damaged   = isAdmin ? Optional.ofNullable(toolReq.getDamaged()).orElse(0) : 0;
+
+                if (isAdmin) {
+                    if (isConsumable) {
+                        int updatedAvailable = inventory.getAvailable() - loaned;
+
+                        toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
+                                .available(Math.max(updatedAvailable, 0))
+                                .onLoan(inventory.getOnLoan())      // sin cambio
+                                .damaged(inventory.getDamaged())    // sin cambio
+                                .build());
+                    } else {
+                        int returnedOk       = delivered - damaged;
+                        int updatedAvailable = inventory.getAvailable() - loaned + returnedOk;
+                        int updatedOnLoan    = inventory.getOnLoan()    + loaned - delivered;
+                        int updatedDamaged   = inventory.getDamaged()   + damaged;
+
                         toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
                                 .available(Math.max(updatedAvailable, 0))
                                 .onLoan(Math.max(updatedOnLoan, 0))
@@ -102,41 +157,13 @@ public class LoanToolServiceImpl implements LoanToolService {
                     }
                 }
 
-                existing.setRequested(toolReq.getRequested());
-                existing.setNotes(toolReq.getNotes());
-
-                existing.setResponsible(responsible);
-
-                if (isAdmin) {
-                    existing.setLoaned(newLoaned);
-                    existing.setDelivered(newDelivered);
-                    existing.setDamaged(newDamaged);
-                }
-            } else {
-                int loaned = isAdmin ? Optional.ofNullable(toolReq.getLoaned()).orElse(0) : 0;
-                int delivered = isAdmin ? Optional.ofNullable(toolReq.getDelivered()).orElse(0) : 0;
-                int damaged = isAdmin ? Optional.ofNullable(toolReq.getDamaged()).orElse(0) : 0;
-
-                if (isAdmin && !toolEntity.getConsumable()) {
-                    int returnedOk = delivered - damaged;
-                    int updatedAvailable = toolEntity.getAvailable() - loaned + returnedOk;
-                    int updatedOnLoan = toolEntity.getOnLoan() + loaned - delivered;
-                    int updatedDamaged = toolEntity.getDamaged() + damaged;
-
-                    toolService.updateStockMain(toolEntity.getId(), ToolStockRequest.builder()
-                            .available(updatedAvailable)
-                            .onLoan(updatedOnLoan)
-                            .damaged(updatedDamaged)
-                            .build());
-                }
-
                 LoanTool newTool = LoanTool.builder()
                         .loan(loan)
                         .tool(toolEntity)
                         .requested(toolReq.getRequested())
                         .loaned(loaned)
-                        .delivered(isAdmin ? Optional.ofNullable(toolReq.getDelivered()).orElse(0) : 0)
-                        .damaged(isAdmin ? Optional.ofNullable(toolReq.getDamaged()).orElse(0) : 0)
+                        .delivered(isAdmin ? delivered : 0)
+                        .damaged(isAdmin ? damaged : 0)
                         .notes(toolReq.getNotes())
                         .responsible(responsible)
                         .build();

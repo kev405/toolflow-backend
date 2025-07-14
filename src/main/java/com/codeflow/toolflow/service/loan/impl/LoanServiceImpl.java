@@ -9,9 +9,11 @@ import com.codeflow.toolflow.persistence.loan.entity.Loan;
 import com.codeflow.toolflow.persistence.loan.entity.LoanTool;
 import com.codeflow.toolflow.persistence.loan.repository.LoanRepository;
 import com.codeflow.toolflow.persistence.tool.entity.Tool;
+import com.codeflow.toolflow.persistence.tool.entity.ToolInventory;
 import com.codeflow.toolflow.persistence.tool.repository.ToolRepository;
 import com.codeflow.toolflow.persistence.user.entity.User;
 import com.codeflow.toolflow.persistence.user.repository.UserRepository;
+import com.codeflow.toolflow.service.headquarter.impl.HeadquarterServiceImpl;
 import com.codeflow.toolflow.service.loan.LoanService;
 import com.codeflow.toolflow.service.tool.impl.ToolServiceImpl;
 import com.codeflow.toolflow.util.enums.LoanStatus;
@@ -66,8 +68,19 @@ public class LoanServiceImpl implements LoanService {
                     .orElseThrow(() -> new EntityNotFoundException("Tool not found: ID " + toolReq.getId()));
 
             int loaned = toolReq.getLoaned() != null ? toolReq.getLoaned() : 0;
-            int newAvailable = (tool.getAvailable() != null ? tool.getAvailable() : 0) - loaned;
-            int newOnLoan = (tool.getOnLoan() != null ? tool.getOnLoan() : 0) + loaned;
+            ToolInventory mainInventory = tool.getInventories().stream()
+                    .filter(inv -> inv.getHeadquarter().getMain())
+                    .findFirst()
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "No inventory in main headquarter for tool " + tool.getId()));
+
+            int currentAvailable = Optional.ofNullable(mainInventory.getAvailable()).orElse(0);
+            int currentOnLoan    = Optional.ofNullable(mainInventory.getOnLoan()).orElse(0);
+
+            int newAvailable = currentAvailable - loaned;
+            int newOnLoan = (tool.getConsumable() != null && tool.getConsumable())
+                    ? currentOnLoan
+                    : currentOnLoan + loaned;
 
             toolService.updateStockMain(tool.getId(), ToolStockRequest.builder()
                     .available(Math.max(newAvailable, 0))
@@ -77,8 +90,7 @@ public class LoanServiceImpl implements LoanService {
 
             User responsibleUnique = null;
             if (toolReq.getResponsibleId() != null) {
-                responsibleUnique = userRepository.findById(toolReq.getResponsibleId())
-                        .orElse(null);
+                responsibleUnique = userRepository.findById(toolReq.getResponsibleId()).orElse(null);
             }
 
             return LoanTool.builder()
@@ -96,16 +108,14 @@ public class LoanServiceImpl implements LoanService {
         boolean allConsumables = loanTools.stream()
                 .allMatch(tool -> tool.getTool().getConsumable());
 
+        LoanStatus initialStatus = Optional.ofNullable(loan.getLoanStatus()).orElse(LoanStatus.ORDER);
 
-        boolean allLoanedAssigned = loanTools.stream()
-                .allMatch(tool -> tool.getLoaned() != null && tool.getLoaned() > 0);
-
-        if (allConsumables && allLoanedAssigned) {
+        if (allConsumables && initialStatus != LoanStatus.ORDER) {
             loan.setLoanStatus(LoanStatus.FINALIZED);
+            loan.setReceivedDate(LocalDate.now());
         }
 
         loan.setLoanTools(loanTools);
-
         return loanMapper.toResponse(loanRepository.save(loan));
     }
 
