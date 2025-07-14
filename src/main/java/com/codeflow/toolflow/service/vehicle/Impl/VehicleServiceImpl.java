@@ -79,7 +79,8 @@ public class VehicleServiceImpl implements VehicleService {
                         .id(vehicle.getId())
                         .name(vehicle.getBrand() + " " + vehicle.getModel() + " (" + vehicle.getPlate() + ")")
                         .vehicleType(vehicle.getVehicleType())
-                        .availableQuantity(1) // A vehicle is a single unit
+                        .availableQuantity(1)
+                        .headquarterId(vehicle.getHeadquarter().getId())
                         .build())
                 .collect(Collectors.toList());
 

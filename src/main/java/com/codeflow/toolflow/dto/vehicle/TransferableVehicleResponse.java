@@ -15,4 +15,5 @@ public class TransferableVehicleResponse {
     private String name;
     private Integer availableQuantity;
     private String vehicleType;
+    private Long headquarterId;
 }
